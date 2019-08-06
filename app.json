@@ -14,8 +14,8 @@
     },
     "category": "security",
     "tags": {
-        "en": ["Hikvision","Camera","Security"],
-        "nl": ["Hikvision","Camera's","Beveliging"]
+        "en": ["Hikvision","Camera","Security", "ABUS", "Grundig", "Annke", "CCTVStar"],
+        "nl": ["Hikvision","Camera","Security", "ABUS", "Grundig", "Annke", "CCTVStar"]
     },
     "images": {
         "large": "/assets/images/large.png",
