@@ -102,34 +102,34 @@ hikApi.on('alarm', function(code, action, index) {
 				channelID: index 
 				};
 				 if (code === 'VideoMotion' && action === 'Start') {
-                me.driver._triggers.trgTVideoMotionStart.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgTVideoMotionStart.trigger(me, token).catch(me.error);
             }
             if (code === 'VideoMotion' && action === 'Stop') {
-                me.driver._triggers.trgVideoMotionStop.trigger(me, token).catch(me.error).then(me.log); 
+                me.driver._triggers.trgVideoMotionStop.trigger(me, token).catch(me.error); 
             }
             if (code === 'AlarmLocal' && action === 'Start'){
-                me.driver._triggers.trgAlarmLocalStart.trigger(me, token).catch(me.error).then(me.log); 
+                me.driver._triggers.trgAlarmLocalStart.trigger(me, token).catch(me.error); 
             }
             if (code === 'AlarmLocal' && action === 'Stop')	{
-                me.driver._triggers.trgAlarmLocalStop.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgAlarmLocalStop.trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoLoss' && action === 'Start')	{
-                me.driver._triggers.trgVideoLossStart.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgVideoLossStart.trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoLoss' && action === 'Stop')	{
-                me.driver._triggers.trgVideoLossStop.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgVideoLossStop.trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoBlind' && action === 'Start'){
-                me.driver._triggers.trgVideoBlindStart.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgVideoBlindStart.trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoBlind' && action === 'Stop')	{
-                me.driver._triggers.trgVideoBlindStop.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgVideoBlindStop.trigger(me, token).catch(me.error);
             }
             if (code === 'LineDetection' && action === 'Start'){
-                me.driver._triggers.trgLineDetectionStart.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgLineDetectionStart.trigger(me, token).catch(me.error);
             }	
             if (code === 'LineDetection' && action === 'Stop')	{
-                me.driver._triggers.trgLineDetectionStop.trigger(me, token).catch(me.error).then(me.log);
+                me.driver._triggers.trgLineDetectionStop.trigger(me, token).catch(me.error);
             }
 
 			
@@ -207,7 +207,6 @@ lastchannelID = reschannelID;
 
    
 initiatecams(camID)  {
-console.log(camID);	
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';	  
 	  
 if(camID == 1){	 
