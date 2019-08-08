@@ -406,7 +406,7 @@
                             "en": "Relative tilt (-100 to 100)",
                             "nl": "Relative tilt (-100 to 100)",
                             "de": "Relativer kippwert (-100 bis 100)"
-			},
+			}
                     },
                     {
                         "name": "zoomnumber",
