@@ -5,12 +5,13 @@
     "sdk": 2,
     "name": {
         "en": "Hikvision",
-        "nl": "Hikvision"
+        "nl": "Hikvision",
+	"de": "Hikvision"
     },
     "description": {
         "en": "Will add support to the Hikvision Cameras",
         "nl": "Voegt ondersteuning toe voor Hikvision Camera's",
-	     "en": "Unterstützung für Hikvision Kameras"
+	     "de": "Unterstützung für Hikvision Kameras"
     },
     "category": "security",
     "tags": {
@@ -466,9 +467,9 @@
             "class": "sensor",
             "capabilities": ["hik_type","hik_version","hik_status"],
             "name": {
-                "en": "Hikvision Camera",
-                "nl": "Hikvision Camera",
-				"nl": "Hikvision Kamera"
+                "en": "Hikvision Device",
+                "nl": "Hikvision Device",
+		"de": "Hikvision Gerät"
             },
             "images": {
                 "large": "/drivers/hikvision-camnvr/assets/images/large.png",
