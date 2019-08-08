@@ -1,12 +1,10 @@
-// Device.js
 'use strict';
 
 const Homey = require('homey');
 const request = require('request');
 const xml2js = require('xml2js');
-const Hikhelper = require('./hik.js');
-var	parser 		= new xml2js.Parser();
-var HikvisionAPI = require('node-hikvision-api').hikvisionApi;
+const parser = new xml2js.Parser();
+const HikvisionAPI = require('./hikvision.js').hikvisionApi;
 
 var hikApi = null;
 
@@ -15,15 +13,9 @@ class HikCamera extends Homey.Device {
     async onInit() {
         this.name = this.getName();
         this.log(`Init device ${this.name}`);
-
         this.settings = this.getSettings();
-	    this.setUnavailable(Homey.__("disconnect"));
-
-
-
+	    this.setCapabilityValue("hik_status", false);
         this.driver = await this._getDriver();
-    
-
         this.upDateCapabilities();
 		this.getChannels();
         this.ConnectToHik();
@@ -38,19 +30,25 @@ class HikCamera extends Homey.Device {
 
     async upDateCapabilities()
     {
-        this.log('Updating Capabilities');
-        await  Hikhelper.GetDeviceType(this.settings.address,this.settings.username,this.settings.password,this.settings.port,this.settings.ssl,this.settings.strict).then( result => {
-            this.setCapabilityValue("hik_type",result);
-        }).catch( err => {
-            this.log(err);
-        });
+	const me = this;
+    this.log('Updating Capabilities');
+    var protocol = this.settings.ssl == true ? 'https://' : 'http://';
+        request({url: protocol + this.settings.address + ':' + this.settings.port + '/ISAPI/System/deviceInfo', strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict},function (error, response, body) {
+			if(body){
+			var softwareVersion = body.match("<firmwareVersion>(.*)</firmwareVersion>");
+			var deviceType = body.match("<deviceType>(.*)</deviceType>");
+			}
+            if ((error) || (response.statusCode !== 200)) {
+            } else {
+             me.setCapabilityValue("hik_type", deviceType[1]);
+			 me.setCapabilityValue("hik_version", softwareVersion[1]);
+			   console.log('deviceType: '+ deviceType[1] + ' softwareVersion: '+ softwareVersion[1]);
+            }
+        }).auth(this.settings.username,this.settings.password,false);
 
-        await Hikhelper.GetSoftwareVersion(this.settings.address,this.settings.username,this.settings.password,this.settings.port,this.settings.ssl,this.settings.strict).then( result => {
-            this.setCapabilityValue("hik_version", result);
-        })
-        .catch( err => {
-            this.log(err);
-        });     
+
+
+		
 }
 
 
@@ -88,13 +86,13 @@ class HikCamera extends Homey.Device {
  
 hikApi = new HikvisionAPI(options);   
    hikApi.on('socket', function(){ 
-	me.handleConnection("connect")
+	me.handleConnection('connect')
    });
    hikApi.on('close', function(){ 
-	me.handleConnection("disconnect")
+	me.handleConnection('disconnect')
    });
    hikApi.on('error', function(){ 
-	me.handleDeviceConnection("error")
+	me.handleConnection('error')
    });	  
 hikApi.on('alarm', function(code, action, index) {
 			   const token = 
@@ -141,26 +139,26 @@ hikApi.on('alarm', function(code, action, index) {
 	
 
 handleConnection(options){
-if(options == "disconnect")
+if(options === 'disconnect')
 {
-this.setUnavailable(Homey.__("disconnect"));
+this.setCapabilityValue("hik_status", false);
 }
-if(options == "error")
+if(options === 'error')
 {
+console.log('setunavailable');
 this.setUnavailable(Homey.__("error"));
 }
-if(options == "connect")
+if(options == 'connect')
 {
-this.setAvailable();
+this.setCapabilityValue("hik_status", true);
 }
 }
 
-  ptzZoom(multiple, channel)  {
+  ptzZoom(pan,tilt,zoom,channel)  {
     	var self = this;
 var PTZurl = this.getCapabilityValue('hik_type') == "NVR" ? ":" + this.settings.port + "/ISAPI/ContentMgmt/PTZCtrlProxy/channels/"+ channel +"/continuous" : ":" + this.settings.port + "/ISAPI/PTZCtrl/channels/"+ channel +"/continuous";
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';
-	request.put({url: protocol + this.settings.address + PTZurl, strictSSL: this.settings.strict, body: '<?xml version="1.0" encoding="UTF-8"?><PTZData><zoom>'+ multiple +'</zoom></PTZData>'}, function (error, response, body) {
-					console.log(PTZurl + multiple);
+	request.put({url: protocol + this.settings.address + PTZurl, strictSSL: this.settings.strict,  rejectUnauthorized: this.settings.strict, body: '<?xml version="1.0" encoding="UTF-8"?><PTZData><pan>'+ pan +'</pan><tilt>'+ tilt +'</tilt><zoom>'+ zoom +'</zoom></PTZData>'}, function (error, response, body) {
 		if ((error) || (response.statusCode !== 200) || (body.trim() !== "OK")) {
 			return false;
 		}
@@ -189,7 +187,18 @@ var protocol = this.settings.ssl == true ? 'https://' : 'http://';
 				var reschannelID = 0;
 				var lastchannelID;
 			for (i in result['StreamingChannelList']['StreamingChannel']) {
+if (result['StreamingChannelList']['StreamingChannel'][i]['Video'][0]['dynVideoInputChannelID'])
+{
 reschannelID = result['StreamingChannelList']['StreamingChannel'][i]['Video'][0]['dynVideoInputChannelID'][0];
+}
+else if(result['StreamingChannelList']['StreamingChannel'][i]['Video'][0]['VideoInputChannelID'])
+{
+reschannelID = result['StreamingChannelList']['StreamingChannel'][i]['Video'][0]['VideoInputChannelID'][0];
+}
+else
+{
+reschannelID = i;
+}
 if (reschannelID != 0 && reschannelID != lastchannelID)
 {
 self.initiatecams(reschannelID);
@@ -207,6 +216,7 @@ lastchannelID = reschannelID;
 
    
 initiatecams(camID)  {
+
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';	  
 	  
 if(camID == 1){	 

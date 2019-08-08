@@ -22,24 +22,25 @@
 					ssl : inputssl,
 					strict : inputstrict
                 };
-                Homey.emit('testConnection', device_data, function( err, result ) {
-                    if(err && result == "401") {
+                Homey.emit('testConnection', device_data, function( err, result) {
+                    if(err && result.name == "401") {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.unauthorized') );
-                    } else if(err && (result == "408" || result == "504")) {
+                    } else if(err && (result.name == "408" || result.name == "504")) {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.timeout') );
-                    } else if(err && result == "404") {
+                    } else if(err && result.name == "404") {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.did.not.found') );
-                    } else if(err && result == "500") {
+                    } else if(err && result.name == "500") {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.servererror') );
-                    } else if(!err && (result=="" || !result)) {
+                    } else if(!err && (result.name=="" || !result.name)) {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.unknownerror') );
-                    } else if(result!="" && result) {
-                         $('.typecamera').html(result);
+                    } else if(result.name!="" && result.name) {
+                         $('.typecamera').html(result.name);
+						 $('.idcamera').html(result.id);
                          $('.hikcamera-test').show();
                          $('#connect').prop('disabled', false);
                     } else {
@@ -61,7 +62,7 @@
 			var inputstrict = $('#strict').is(':checked');
             if(inputaddress != '') {
                 var device_data = {
-                    id : inputaddress,
+                    id : $('.idcamera').html(),
                 };
                 var settings = {
                     address  : inputaddress,
@@ -136,6 +137,7 @@
     </div>
     <div class="messages">
         <label class="typecamera"></label>
+		<label class="idcamera"></label>
         <p class="hikcamera-status hikcamera-test" style="color: #008C23;"><i class="fa fa-check"></i> <span class="hikcamera-test-msg" data-i18n="pair.testing">Camera connection test succesfull</span></p>
         <p class="hikcamera-status hikcamera-ok" style="color: #008C23;"><i class="fa fa-check"></i> <span class="hikcamera-ok-msg" data-i18n="pair.success">Camera added succesfully</span></p>
         <p class="hikcamera-status hikcamera-error" style="color: #ff6300;"><i class="fa fa-times"></i> <span class="hikcamera-error-msg"></span></p>

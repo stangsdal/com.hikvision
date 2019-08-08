@@ -1,10 +1,7 @@
-// Driver.js
 'use strict';
 
 const Homey = require('homey');
-const net = require('net');
-const Hikhelper = require('./hik.js');
-var HikvisionAPI = require('node-hikvision-api').hikvisionApi;
+const request = require('request');
 
 class HikvisionDriver extends Homey.Driver {
 
@@ -15,11 +12,11 @@ class HikvisionDriver extends Homey.Driver {
 
        
 
-        new Homey.FlowCardAction('zoom')
+        new Homey.FlowCardAction('ptzcontinuous')
         .register()
         .registerRunListener(( args, state ) => {     
                     if (args.device) {
-                        return Promise.resolve(args.device.ptzZoom(args.zoomnumber, args.channel));
+                        return Promise.resolve(args.device.ptzZoom(args.pannumber,args.tiltnumber,args.zoomnumber, args.channel));
                     }
                     return Promise.resolve( true );         
         })        
@@ -45,15 +42,34 @@ class HikvisionDriver extends Homey.Driver {
 
     onPair(socket) {
         socket.on('testConnection', function(data, callback) {
-			console.log(data);
-            Hikhelper.GetDeviceName(data.address,data.username,data.password,data.port,data.ssl,data.strict).then( result => {
-                console.log(result);
-                callback(false,result);
-            })
-            .catch( err => {
-                console.log(err);
-                callback(err,err);
-            });    
+
+			
+        var protocol = data.ssl == true ? 'https://' : 'http://';
+        request({url: protocol + data.address + ':' + data.port + '/ISAPI/System/deviceInfo', strictSSL: data.strict, rejectUnauthorized: data.strict},function (error, response, body) {
+			if(body){
+			var deviceName = body.match("<deviceName>(.*)</deviceName>");
+			var deviceID = body.match("<deviceID>(.*)</deviceID>");
+	
+            if ((error) || (response.statusCode !== 200)) {
+                if (response.statusCode) 
+				callback(response.statusCode);
+                else 
+                    callback('404');
+            } else {
+				
+			var deviceCallback = {};
+				deviceCallback.name = deviceName[1];
+				deviceCallback.id = deviceID[1];
+               callback(false, deviceCallback);
+            }
+			}
+			else
+			{
+			callback('404');
+			}
+        }).auth(data.username,data.password,false);
+
+			
         });
     }
 

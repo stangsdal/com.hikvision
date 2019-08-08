@@ -1,11 +1,10 @@
 #!/usr/bin/nodejs
 // hikvision HTTP API Module
 
-var 	net 		= require('net');
-var  	events 		= require('events');
-var 	util		= require('util');
-var 	request 	= require('request');
-var     xml2js 		= require('xml2js');
+const  	events 		= require('events');
+const 	util		= require('util');
+const 	request 	= require('request');
+const   xml2js 		= require('xml2js');
 
 
 // Define Globals
@@ -51,6 +50,7 @@ hikvisionApi.prototype.connect = function(options) {
 	});
 
 	client.on('close', function() {		// Try to reconnect after 30s
+	console.log('close');
 	    setTimeout(function() { self.connect(options) }, 30000 );
 		handleEnd(self)
 	});
@@ -58,8 +58,14 @@ hikvisionApi.prototype.connect = function(options) {
 		client.on('error', function(err) {		
 	    console.log('error');
 		console.log(err);
-        setTimeout(function() { self.connect(options) }, 60000 );
+		setTimeout(function() { self.connect(options) }, 60000 );
+		handleError(self, err)
 	});
+	
+	
+process.on('uncaughtException', function (err) {
+  console.error(err.stack);
+});
 
 	
 }

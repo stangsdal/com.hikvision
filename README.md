@@ -4,7 +4,7 @@ Support for Hikvision Cameras and NVR
 
 *Using Alarms in Flows
 
-*Control PTZ Cameras (at the moment only zoom is implemented)
+*Control PTZ Cameras
 
 *See the Camera Images and use them in Flows
 

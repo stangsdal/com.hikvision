@@ -58,6 +58,28 @@
             "getable": true,
             "setable": false,
 			"icon": "/assets/info.svg"
+        },
+		        "hik_status": {
+            "type": "boolean",
+            "title": {
+                "en": "Connected",
+                "nl": "Aangesloten",
+				"de": "Verbunden"
+            },
+			"insights": true,
+			"insightsTitleTrue": { 
+			"en": "Connected",
+			"nl": "Aangesloten",
+			"de": "Verbunden" 
+			},
+			"insightsTitleFalse": { 
+			"en": "Disconnected",
+			"nl": "Losgekoppeld",
+			"de": "Getrennt"
+			},
+            "getable": true,
+            "setable": false,
+		    "icon": "/assets/info.svg"
         }
     },
     "flow": {
@@ -334,22 +356,52 @@
     ],
         "actions": [
             {
-                "id":"zoom",
+                "id":"ptzcontinuous",
                 "title": {
-                    "en": "Zoom in/out",
-                    "nl": "In/Uit zoomen",
-					"de": "Rein-Rauszoomen"
+                    "en": "PTZ",
+                    "nl": "PTZ",
+					"de": "PTZ"
                 },
                 "args": [
+						 {
+                        "name": "pannumber",
+                        "type": "number",
+                        "min": -100,
+                        "max": 100,
+                        "step": 0.1,
+                        "placeholder": {
+                            "en": "Pan number",
+                            "nl": "Pan nummer",
+							"de": "Pan nummer"
+                        },
+                        "hint": {
+                            "en": "Pan number",
+                            "nl": "Pan nummer",
+							"de": "Pan nummer"
+                        }      						
+                    },
+									  {
+                        "name": "tiltnumber",
+                        "type": "number",
+                        "min": -100,
+                        "max": 100,
+                        "step": 0.1,
+                        "placeholder": {
+                            "en": "Tilt number",
+                            "nl": "Tilt nummer",
+							"de": "Tilt nummer"
+                        }                        
+                    },
                     {
                         "name": "zoomnumber",
                         "type": "number",
                         "min": -100,
                         "max": 100,
-                        "step": 1,
+                        "step": 0.1,
                         "placeholder": {
                             "en": "Zoom number",
-                            "nl": "Zoom nummer"
+                            "nl": "Zoom nummer",
+							"de": "Zoom nummer"
                         }                        
                     },
 				    {
@@ -378,7 +430,7 @@
         {
             "id": "hikvision-camnvr",
             "class": "sensor",
-            "capabilities": ["hik_type","hik_version"],
+            "capabilities": ["hik_type","hik_version","hik_status"],
             "name": {
                 "en": "Hikvision Camera",
                 "nl": "Hikvision Camera",
