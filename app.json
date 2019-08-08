@@ -369,28 +369,43 @@
                         "min": -100,
                         "max": 100,
                         "step": 0.1,
+			"label": {
+                            "en": "Pan number",
+                            "nl": "Pan nummer",
+			    "de": "Pan nummer"
+                        },
                         "placeholder": {
                             "en": "Pan number",
                             "nl": "Pan nummer",
-							"de": "Pan nummer"
+			    "de": "Pan nummer"
                         },
                         "hint": {
-                            "en": "Pan number",
-                            "nl": "Pan nummer",
-							"de": "Pan nummer"
+                            "en": "Relative Pan (-100 to 100)",
+                            "nl": "Relative Pan (-100 to 100)",
+			    "de": "Relativer schwenkwert (-100 bis 100)"
                         }      						
                     },
-									  {
+		                               {
                         "name": "tiltnumber",
                         "type": "number",
                         "min": -100,
                         "max": 100,
                         "step": 0.1,
-                        "placeholder": {
+			"label": {
                             "en": "Tilt number",
                             "nl": "Tilt nummer",
-							"de": "Tilt nummer"
-                        }                        
+			    "de": "Tilt nummer"
+                        },
+                        "placeholder": {
+                            "en": "0",
+                            "nl": "0",
+                            "de": "0"
+                        }  
+			"hint": {
+                            "en": "Relative tilt (-100 to 100)",
+                            "nl": "Relative tilt (-100 to 100)",
+                            "de": "Relativer kippwert (-100 bis 100)"
+			},
                     },
                     {
                         "name": "zoomnumber",
@@ -398,10 +413,20 @@
                         "min": -100,
                         "max": 100,
                         "step": 0.1,
-                        "placeholder": {
+			"label": {
                             "en": "Zoom number",
                             "nl": "Zoom nummer",
-							"de": "Zoom nummer"
+			    "de": "Zoom nummer"
+                        },
+			"hint": {
+                            "en": "Relative zoom (-100 to 100)",
+                            "nl": "Relative zoom (-100 to 100)",
+                            "de": "Relativer zoom (-100 bis 100)"
+			},
+                        "placeholder": {
+                            "en": "0",
+                            "nl": "0",
+                            "de": "0"
                         }                        
                     },
 				    {
@@ -410,11 +435,20 @@
                         "min": 0,
                         "max": 36,
                         "step": 1,
-						"default": 0,
-                        "placeholder": {
+			"label": {
                             "en": "Channel-ID",
                             "nl": "Channel-ID",
-							"de": "Channel-ID"
+			    "de": "Channel-ID"
+                        },
+			"hint": {
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
+			},
+                        "placeholder": {
+                            "en": "1",
+                            "nl": "1",
+                            "de": "1"
                         }                        
                     },
                     {
