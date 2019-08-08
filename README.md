@@ -21,5 +21,5 @@ You can write me a message at Athom Community [@mapulu](https://community.athom.
 
 
 Changelog
-## Beta 0.1.1
+## Beta 0.1.2
 Initial Beta Version
