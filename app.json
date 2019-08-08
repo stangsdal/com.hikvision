@@ -375,7 +375,7 @@
                         "min": -100,
                         "max": 100,
                         "step": 0.1,
-			"label": {
+			"placeholder": {
                             "en": "Pan number",
                             "nl": "Pan nummer",
 			    "de": "Pan nummer"
