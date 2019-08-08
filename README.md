@@ -1,6 +1,6 @@
 # Hikvision
 
-Support for Hikvision Cameras and NVR
+Support for Hikvision IP-Cameras and NVR
 
 *Using Alarms in Flows
 
