@@ -1,6 +1,6 @@
 # Hikvision
 
-Support for Hikvision Cameras and NVR
+Support for Hikvision IP-Cameras and NVR
 
 *Using Alarms in Flows
 
@@ -21,5 +21,5 @@ You can write me a message at Athom Community [@mapulu](https://community.athom.
 
 
 Changelog
-## Beta 0.1.0
+## Beta 0.1.2
 Initial Beta Version
