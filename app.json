@@ -1,16 +1,17 @@
 {
     "id": "com.hikvision",
-    "version": "0.1.3",
+    "version": "0.1.2",
     "compatibility": ">=2.4.0",
     "sdk": 2,
     "name": {
         "en": "Hikvision",
-        "nl": "Hikvision"
+        "nl": "Hikvision",
+	"de": "Hikvision"
     },
     "description": {
         "en": "Will add support to the Hikvision Cameras",
         "nl": "Voegt ondersteuning toe voor Hikvision Camera's",
-	     "en": "Unterstützung für Hikvision Kameras"
+	     "de": "Unterstützung für Hikvision Kameras"
     },
     "category": "security",
     "tags": {
@@ -83,55 +84,7 @@
         }
     },
     "flow": {
-        "triggers": [
-			{
-            "id": "OnConnected",
-            "title": {
-                "en": "Connected",
-                "nl": "Connected",
-				"de": "Verbunden"
-            },
-            "args": [
-              {
-                "name": "device",
-                "type": "device",
-                "filter" : "driver_id=hikvision-camnvr"
-              }
-            ]
-        },
-		{
-            "id": "OnDisconnected",
-            "title": {
-                "en": "Disconnected",
-                "nl": "Disconnected",
-				"de": "Getrennt"
-            },
-            "args": [
-              {
-                "name": "device",
-                "type": "device",
-                "filter" : "driver_id=hikvision-camnvr"
-              }
-            ]
-        },
-		{
-            "id": "OnError",
-            "title": {
-                "en": "Connection Error",
-                "nl": "Connection Error",
-				"de": "Verbindungsfehler"
-            },
-            "args": [
-              {
-                "name": "device",
-                "type": "device",
-                "filter" : "driver_id=hikvision-camnvr"
-              }
-            ]
-        },
-			
-			
-			{
+        "triggers": [{
             "id": "VideoMotionStart",
             "title": {
                 "en": "VideoMotion Start",
@@ -143,9 +96,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -170,9 +123,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -197,9 +150,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -224,9 +177,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -251,9 +204,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -278,9 +231,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -296,8 +249,8 @@
         {
             "id": "VideoBlindStart",
             "title": {
-                "en": "Videoblind Start",
-                "nl": "Videoblind Start",
+                "en": "Videoblind start",
+                "nl": "Videoblind start",
 				"de": "Sabotage Start"
             },
 						"tokens": [
@@ -305,9 +258,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -332,9 +285,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -350,7 +303,7 @@
 		  {
             "id": "LineDetectionStart",
             "title": {
-                "en": "LineDetection Start",
+                "en": "LineDetection Tart",
                 "nl": "LineDetection Start",
 				"de": "Linienüberquerungsdetektion Start"
             },
@@ -359,9 +312,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -386,9 +339,9 @@
             "name": "channelID",
             "type": "number",
             "title": {
-              "en": "Channel-ID",
-              "nl": "Channel-ID",
-			  "de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
             },
             "example": "2"
           }
@@ -408,8 +361,13 @@
                 "title": {
                     "en": "PTZ",
                     "nl": "PTZ",
-					"de": "PTZ"
+		    "de": "PTZ"
                 },
+                        "hint": {
+                            "en": "Relative Values (-100 to 100)",
+                            "nl": "Relative Values(-100 to 100)",
+			    "de": "Relative Werte (-100 bis 100)"
+                        },   
                 "args": [
 						 {
                         "name": "pannumber",
@@ -417,18 +375,13 @@
                         "min": -100,
                         "max": 100,
                         "step": 0.1,
-                        "placeholder": {
+			"placeholder": {
                             "en": "Pan number",
                             "nl": "Pan nummer",
-							"de": "Pan nummer"
-                        },
-                        "hint": {
-                            "en": "Pan number",
-                            "nl": "Pan nummer",
-							"de": "Pan nummer"
-                        }      						
+			    "de": "Pan nummer"
+                        } 						
                     },
-									  {
+		                               {
                         "name": "tiltnumber",
                         "type": "number",
                         "min": -100,
@@ -437,8 +390,8 @@
                         "placeholder": {
                             "en": "Tilt number",
                             "nl": "Tilt nummer",
-							"de": "Tilt nummer"
-                        }                        
+			    "de": "Tilt nummer"
+                        }
                     },
                     {
                         "name": "zoomnumber",
@@ -449,7 +402,7 @@
                         "placeholder": {
                             "en": "Zoom number",
                             "nl": "Zoom nummer",
-							"de": "Zoom nummer"
+			    "de": "Zoom nummer"
                         }                        
                     },
 				    {
@@ -458,11 +411,10 @@
                         "min": 0,
                         "max": 36,
                         "step": 1,
-						"default": 0,
                         "placeholder": {
-                            "en": "Channel-ID",
-                            "nl": "Channel-ID",
-							"de": "Channel-ID"
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
                         }                        
                     },
                     {
@@ -482,7 +434,7 @@
             "name": {
                 "en": "Hikvision Device",
                 "nl": "Hikvision Device",
-				"nl": "Hikvision Gerät"
+		"de": "Hikvision Gerät"
             },
             "images": {
                 "large": "/drivers/hikvision-camnvr/assets/images/large.png",
