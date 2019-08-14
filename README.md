@@ -21,5 +21,9 @@ You can write me a message at Athom Community [@mapulu](https://community.athom.
 
 
 Changelog
+## Beta 0.1.5
+Added camera names for NVR cameras
+Added Flow-Trigger for Connected/Disconnected/Error
+
 ## Beta 0.1.2
 Initial Beta Version
