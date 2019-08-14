@@ -27,6 +27,9 @@ class HikvisionDriver extends Homey.Driver {
 
     registerFlowCards() {
         this._triggers = {
+			trgOnConnected: new Homey.FlowCardTriggerDevice('OnConnected').register(),
+			trgOnDisconnected: new Homey.FlowCardTriggerDevice('OnDisconnected').register(),
+			trgOnError: new Homey.FlowCardTriggerDevice('OnError').register(),
 			trgTVideoMotionStart: new Homey.FlowCardTriggerDevice('VideoMotionStart').register(),
 			trgVideoMotionStop: new Homey.FlowCardTriggerDevice('VideoMotionStop').register(),
 			trgAlarmLocalStart: new Homey.FlowCardTriggerDevice('AlarmLocalStart').register(),
@@ -45,31 +48,49 @@ class HikvisionDriver extends Homey.Driver {
 
 			
         var protocol = data.ssl == true ? 'https://' : 'http://';
-        request({url: protocol + data.address + ':' + data.port + '/ISAPI/System/deviceInfo', strictSSL: data.strict, rejectUnauthorized: data.strict},function (error, response, body) {
+		var checkconnect = request({url: protocol + data.address + ':' + data.port + '/ISAPI/System/deviceInfo', strictSSL: data.strict, rejectUnauthorized: data.strict, timeout: 5000},function (error, response, body) {
 			if(body){
+			console.log("## start test connection ##");
+			console.log(protocol + data.address + data.port + data.strict + data.username);
+			console.log(body);
 			var deviceName = body.match("<deviceName>(.*)</deviceName>");
 			var deviceID = body.match("<deviceID>(.*)</deviceID>");
-	
+	        console.log(response.statusCode);
             if ((error) || (response.statusCode !== 200)) {
-                if (response.statusCode) 
-				callback(response.statusCode);
-                else 
-                    callback('404');
+			    var deviceCallback = {};
+				deviceCallback.name = "";
+				deviceCallback.id = "";
+                if (response.statusCode)
+				{
+				deviceCallback.error = response.statusCode;
+				callback(error, deviceCallback);
+				}
+                else
+				{ 
+			    deviceCallback.error = 404;
+				callback(error, deviceCallback);
+				}
             } else {
 				
 			var deviceCallback = {};
 				deviceCallback.name = deviceName[1];
 				deviceCallback.id = deviceID[1];
+				deviceCallback.error = "";
                callback(false, deviceCallback);
             }
 			}
 			else
 			{
-			callback('404');
+			var deviceCallback = {};
+				deviceCallback.name = "";
+				deviceCallback.id = "";
+				deviceCallback.error = 404;
+				callback(true, deviceCallback);
 			}
         }).auth(data.username,data.password,false);
+		
+		
 
-			
         });
     }
 

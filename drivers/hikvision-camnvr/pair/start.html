@@ -22,17 +22,17 @@
 					ssl : inputssl,
 					strict : inputstrict
                 };
-                Homey.emit('testConnection', device_data, function( err, result) {
-                    if(err && result.name == "401") {
+                Homey.emit('testConnection', device_data, function(err, result) {
+                    if(result.error == "401") {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.unauthorized') );
-                    } else if(err && (result.name == "408" || result.name == "504")) {
+                    } else if(result.error == "408" || result.error == "504") {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.timeout') );
-                    } else if(err && result.name == "404") {
+                    } else if(result.error == "404") {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.did.not.found') );
-                    } else if(err && result.name == "500") {
+                    } else if(result.error == "500") {
                         $('.hikcamera-error').show();
                         $('.hikcamera-error-msg').html( __('pair.servererror') );
                     } else if(!err && (result.name=="" || !result.name)) {
@@ -91,6 +91,18 @@
                 $('.hikcamera-error-msg').html( __('pair.nosettings') );
             }
         });
+		
+				 $('#ssl').change(function() {
+	if (!$(this).is(':checked')) {
+      $('#port').val('80');
+    }
+	else
+	{
+	$('#port').val('443');
+	}
+	
+  });
+		
     })
     </script>
     

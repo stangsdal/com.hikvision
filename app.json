@@ -1,6 +1,6 @@
 {
     "id": "com.hikvision",
-    "version": "0.1.0",
+    "version": "0.1.3",
     "compatibility": ">=2.4.0",
     "sdk": 2,
     "name": {
@@ -83,7 +83,55 @@
         }
     },
     "flow": {
-        "triggers": [{
+        "triggers": [
+			{
+            "id": "OnConnected",
+            "title": {
+                "en": "Connected",
+                "nl": "Connected",
+				"de": "Verbunden"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "filter" : "driver_id=hikvision-camnvr"
+              }
+            ]
+        },
+		{
+            "id": "OnDisconnected",
+            "title": {
+                "en": "Disconnected",
+                "nl": "Disconnected",
+				"de": "Getrennt"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "filter" : "driver_id=hikvision-camnvr"
+              }
+            ]
+        },
+		{
+            "id": "OnError",
+            "title": {
+                "en": "Connection Error",
+                "nl": "Connection Error",
+				"de": "Verbindungsfehler"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "filter" : "driver_id=hikvision-camnvr"
+              }
+            ]
+        },
+			
+			
+			{
             "id": "VideoMotionStart",
             "title": {
                 "en": "VideoMotion Start",
@@ -248,8 +296,8 @@
         {
             "id": "VideoBlindStart",
             "title": {
-                "en": "Videoblind start",
-                "nl": "Videoblind start",
+                "en": "Videoblind Start",
+                "nl": "Videoblind Start",
 				"de": "Sabotage Start"
             },
 						"tokens": [
@@ -302,7 +350,7 @@
 		  {
             "id": "LineDetectionStart",
             "title": {
-                "en": "LineDetection Tart",
+                "en": "LineDetection Start",
                 "nl": "LineDetection Start",
 				"de": "Linienüberquerungsdetektion Start"
             },
@@ -432,9 +480,9 @@
             "class": "sensor",
             "capabilities": ["hik_type","hik_version","hik_status"],
             "name": {
-                "en": "Hikvision Camera",
-                "nl": "Hikvision Camera",
-				"nl": "Hikvision Kamera"
+                "en": "Hikvision Device",
+                "nl": "Hikvision Device",
+				"nl": "Hikvision Gerät"
             },
             "images": {
                 "large": "/drivers/hikvision-camnvr/assets/images/large.png",

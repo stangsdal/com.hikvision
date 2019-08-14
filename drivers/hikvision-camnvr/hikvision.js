@@ -78,7 +78,6 @@ function handleData(self, data) {
 			var action = result['EventNotificationAlert']['eventState'][0]
 			var index = parseInt(result['EventNotificationAlert']['channelID'][0])
 			var count = parseInt(result['EventNotificationAlert']['activePostCount'][0])
-
 			// give codes returned by camera prettier and standardized description
 			if (code === 'IO')            code = 'AlarmLocal';
 			if (code === 'VMD')           code = 'VideoMotion';
