@@ -405,9 +405,9 @@
             {
                 "id":"ptzcontinuous",
                 "title": {
-                    "en": "PTZ",
-                    "nl": "PTZ",
-		    "de": "PTZ"
+                    "en": "Relative PTZ",
+                    "nl": "Relative PTZ",
+                    "de": "Relativer PTZ"
                 },
                         "hint": {
                             "en": "Relative Values (-100 to 100)",

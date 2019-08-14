@@ -223,7 +223,7 @@ resolve(reschannelName);
 channelOnline(reschannelName) {
 var self = this;
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';
-get camera online
+//get camera online
 request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels/status", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}, function (error, response, body) {
 		if ((error) || (response.statusCode !== 200)) {
 		for (i in reschannelName) {
