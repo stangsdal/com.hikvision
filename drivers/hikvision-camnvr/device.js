@@ -172,7 +172,6 @@ var protocol = this.settings.ssl == true ? 'https://' : 'http://';
 		}
 		else
 		{
-			console.log(PTZurl + multiple);
 		return true;
 		}
 	}).auth(this.settings.username,this.settings.password,false);
@@ -210,8 +209,6 @@ request({url: protocol  + this.settings.address + ":" + this.settings.port + "/I
 reschannelID = result['InputProxyChannelList']['InputProxyChannel'][i]['id'];
 reschannelName[reschannelID] = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
 }
-console.log("InputProxy/channels");
-console.log(body);
 resolve(reschannelName);
 			});
 		}
