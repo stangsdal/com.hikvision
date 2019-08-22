@@ -243,8 +243,6 @@ if (reschannelOnline === "true")
 self.initiatecams(reschannelID, reschannelName[reschannelID]);
 }
 }
-console.log("InputProxy/status");
-console.log(body);	
 			});
 		return true;
 		}
