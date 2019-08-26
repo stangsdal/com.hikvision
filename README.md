@@ -21,6 +21,10 @@ You can write me a message at Athom Community [@mapulu](https://community.athom.
 
 
 Changelog
+
+## Beta 0.2.2
+Added Flow-Trigger for Intrusion Detection
+
 ## Beta 0.2.1
 Event trigger fix for some devices
 

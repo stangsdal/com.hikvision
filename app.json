@@ -1,6 +1,6 @@
 {
     "id": "com.hikvision",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "compatibility": ">=2.4.0",
     "sdk": 2,
     "name": {
@@ -14,6 +14,7 @@
         "de": "Unterstützung für Hikvision Kameras"
     },
     "category": "security",
+	"homeyCommunityTopicId": 16642,
     "tags": {
         "en": ["Hikvision","Camera","Security", "ABUS", "Grundig", "Annke", "CCTVStar"],
         "nl": ["Hikvision","Camera","Security", "ABUS", "Grundig", "Annke", "CCTVStar"]
@@ -349,8 +350,8 @@
 		  {
             "id": "LineDetectionStart",
             "title": {
-                "en": "LineDetection Tart",
-                "nl": "LineDetection Start",
+                "en": "Line Crossing Detection Start",
+                "nl": "Line CrossingDetection Start",
 				"de": "Linienüberquerungsdetektion Start"
             },
 						"tokens": [
@@ -376,9 +377,63 @@
         {
             "id": "LineDetectionStop",
             "title": {
-                "en": "LineDetection Stop",
-                "nl": "LineDetection Stop",
+                "en": "Line Crossing Detection Stop",
+                "nl": "Line Crossing Detection Stop",
 				"de": "Linienüberquerungsdetektion Ende"
+            },
+						"tokens": [
+          {
+            "name": "channelID",
+            "type": "number",
+            "title": {
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
+            },
+            "example": "2"
+          }
+		],
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "filter" : "driver_id=hikvision-camnvr"
+              }
+            ]
+        },
+		  {
+            "id": "IntrusionDetectionStart",
+            "title": {
+                "en": "Intrusion Detection Sart",
+                "nl": "Intrusion Detection Start",
+				"de": "Einbruchmeldung Start"
+            },
+						"tokens": [
+          {
+            "name": "channelID",
+            "type": "number",
+            "title": {
+                            "en": "Camera Number",
+                            "nl": "Camera Number",
+                            "de": "Kamera Nummer"
+            },
+            "example": "2"
+          }
+		],
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "filter" : "driver_id=hikvision-camnvr"
+              }
+            ]
+        },
+        {
+            "id": "IntrusionDetectionStop",
+            "title": {
+                "en": "Intrusion Detection Stop",
+                "nl": "Intrusion Detection Stop",
+				"de": "Einbruchmeldung Ende"
             },
 						"tokens": [
           {
@@ -409,10 +464,15 @@
                     "nl": "Relative PTZ",
                     "de": "Relativer PTZ"
                 },
+                "titleFormatted": {
+                    "en": "Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]",
+					"nl": "[[device]] Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]",
+					"de": "[[device]] Setze relativen PTZ: Kamera: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]"
+                    },
                         "hint": {
                             "en": "Relative Values (-100 to 100)",
                             "nl": "Relative Values(-100 to 100)",
-			    "de": "Relative Werte (-100 bis 100)"
+                            "de": "Relative Werte (-100 bis 100)"
                         },   
                 "args": [
 						 {
@@ -424,7 +484,7 @@
 			"placeholder": {
                             "en": "Pan number",
                             "nl": "Pan nummer",
-			    "de": "Pan nummer"
+							"de": "Pan nummer"
                         } 						
                     },
 		                               {
@@ -436,7 +496,7 @@
                         "placeholder": {
                             "en": "Tilt number",
                             "nl": "Tilt nummer",
-			    "de": "Tilt nummer"
+							"de": "Tilt nummer"
                         }
                     },
                     {
@@ -448,7 +508,7 @@
                         "placeholder": {
                             "en": "Zoom number",
                             "nl": "Zoom nummer",
-			    "de": "Zoom nummer"
+							"de": "Zoom nummer"
                         }                        
                     },
 				    {

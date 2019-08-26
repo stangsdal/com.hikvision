@@ -19,8 +19,9 @@ class HikvisionDriver extends Homey.Driver {
                         return Promise.resolve(args.device.ptzZoom(args.pannumber,args.tiltnumber,args.zoomnumber, args.channel));
                     }
                     return Promise.resolve( true );         
-        })        
-
+        })  
+ 
+		
       
 
     }
@@ -40,6 +41,8 @@ class HikvisionDriver extends Homey.Driver {
 			trgVideoBlindStop: new Homey.FlowCardTriggerDevice('VideoBlindStop').register(),
 			trgLineDetectionStart: new Homey.FlowCardTriggerDevice('LineDetectionStart').register(),
 			trgLineDetectionStop: new Homey.FlowCardTriggerDevice('LineDetectionStop').register(),
+			trgIntrusionDetectionStart: new Homey.FlowCardTriggerDevice('IntrusionDetectionStart').register(),
+			trgIntrusionDetectionStop: new Homey.FlowCardTriggerDevice('IntrusionDetectionStop').register(),			
 		};
     }
 

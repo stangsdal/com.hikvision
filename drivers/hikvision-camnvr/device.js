@@ -71,7 +71,6 @@ class HikCamera extends Homey.Device {
 
     ConnectToHik() {
 const me = this;
-this.setAvailable();
 		this.getChannels()
     	.then(reschannelName => {
     		   	this.channelOnline(reschannelName);
@@ -137,6 +136,13 @@ hikApi.on('alarm', function(code, action, index) {
             if (code === 'LineDetection' && action === 'Stop')	{
                 me.driver._triggers.trgLineDetectionStop.trigger(me, token).catch(me.error);
             }
+            if (code === 'IntrusionDetection' && action === 'Start'){
+                me.driver._triggers.trgIntrusionDetectionStart.trigger(me, token).catch(me.error);
+            }	
+            if (code === 'IntrusionDetection' && action === 'Stop')	{
+                me.driver._triggers.trgIntrusionDetectionStop.trigger(me, token).catch(me.error);
+            }
+			
 
 			
 				
@@ -154,15 +160,19 @@ this.setCapabilityValue("hik_status", false);
 if(options === 'error')
 {
 console.log('setunavailable');
+this.setCapabilityValue("hik_status", false);
 this.setUnavailable(Homey.__("error"));
 }
 if(options == 'connect')
 {
+this.setAvailable();
 this.setCapabilityValue("hik_status", true);
 }
 }
 
-  ptzZoom(pan,tilt,zoom,channel)  {
+
+//relative ptz
+ptzZoom(pan,tilt,zoom,channel)  {
     	var self = this;
 var PTZurl = this.getCapabilityValue('hik_type') == "NVR" ? ":" + this.settings.port + "/ISAPI/ContentMgmt/PTZCtrlProxy/channels/"+ channel +"/continuous" : ":" + this.settings.port + "/ISAPI/PTZCtrl/channels/"+ channel +"/continuous";
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';

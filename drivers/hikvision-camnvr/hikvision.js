@@ -80,16 +80,16 @@ function handleData(self, data) {
 			if (result['EventNotificationAlert']['dynChannelID']) var index = parseInt(result['EventNotificationAlert']['dynChannelID'][0])
 			var count = parseInt(result['EventNotificationAlert']['activePostCount'][0])
 			// give codes returned by camera prettier and standardized description
-			if (code === 'IO')            code = 'AlarmLocal';
-			if (code === 'VMD')           code = 'VideoMotion';
-			if (code === 'linedetection') code = 'LineDetection';
-			if (code === 'videoloss')     code = 'VideoLoss';
-			if (code === 'shelteralarm')  code = 'VideoBlind';
-			if (action === 'active')    action = 'Start'
-			if (action === 'inactive')  action = 'Stop'
+			if (code === 'IO')               code = 'AlarmLocal';
+			if (code === 'VMD')              code = 'VideoMotion';
+			if (code === 'linedetection')    code = 'LineDetection';
+			if (code === 'fielddetection')   code = 'IntrusionDetection';
+			if (code === 'videoloss')        code = 'VideoLoss';
+			if (code === 'shelteralarm')     code = 'VideoBlind';
+			if (action === 'active')       action = 'Start'
+			if (action === 'inactive')     action = 'Stop'
 
-			// create and event identifier for each recieved event
-			// This allows multiple detection types with multiple indexes for DVR or multihead devices
+			// create and event identifier for each received event
 			var eventIdentifier = code + index
 
 			// Count 0 seems to indicate everything is fine and nothing is wrong, used as a heartbeat
