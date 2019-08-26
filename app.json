@@ -466,8 +466,8 @@
                 },
                 "titleFormatted": {
                     "en": "Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]",
-					"nl": "[[device]] Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]",
-					"de": "[[device]] Setze relativen PTZ: Kamera: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]"
+					"nl": "Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]",
+					"de": "Setze relativen PTZ: Kamera: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]"
                     },
                         "hint": {
                             "en": "Relative Values (-100 to 100)",
