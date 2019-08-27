@@ -1,6 +1,6 @@
 {
     "id": "com.hikvision",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "compatibility": ">=2.4.0",
     "sdk": 2,
     "name": {
@@ -465,9 +465,7 @@
                     "de": "Relativer PTZ"
                 },
                 "titleFormatted": {
-                    "en": "Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]",
-					"nl": "Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]",
-					"de": "Setze relativen PTZ: Kamera: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]"
+                    "en": "Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]"
                     },
                         "hint": {
                             "en": "Relative Values (-100 to 100)",
