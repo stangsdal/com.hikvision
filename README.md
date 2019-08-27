@@ -22,7 +22,7 @@ You can write me a message at Athom Community [@mapulu](https://community.athom.
 
 Changelog
 
-## Beta 0.2.2
+## Beta 0.2.3
 Added Flow-Trigger for Intrusion Detection
 
 ## Beta 0.2.1
