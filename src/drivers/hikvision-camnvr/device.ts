@@ -205,12 +205,63 @@ class HikCamera extends Homey.Device {
         return true;
     }
 
+    async getSingleCameraName(): Promise<string> {
+        const protocol = this.settings.ssl === true ? 'https://' : 'http://';
+        
+        return new Promise((resolve) => {
+            // Try to get camera name from device info
+            request({
+                url: protocol + this.settings.address + ':' + this.settings.port + '/ISAPI/System/deviceInfo', 
+                strictSSL: this.settings.strict, 
+                rejectUnauthorized: this.settings.strict
+            }, (error: any, response: any, body: string) => {
+                if (body && !error && response.statusCode === 200) {
+                    const deviceName = body.match("<deviceName>(.*)</deviceName>");
+                    if (deviceName && deviceName[1] && deviceName[1].trim() !== '') {
+                        resolve(deviceName[1].trim());
+                        return;
+                    }
+                }
+                
+                // Fallback: try to get from channel info
+                request({
+                    url: protocol + this.settings.address + ':' + this.settings.port + '/ISAPI/Streaming/channels', 
+                    strictSSL: this.settings.strict, 
+                    rejectUnauthorized: this.settings.strict
+                }, (error2: any, response2: any, body2: string) => {
+                    if (body2 && !error2 && response2.statusCode === 200) {
+                        parser.parseString(body2, (err: any, result: any) => {
+                            if (!err && result && result['StreamingChannelList'] && result['StreamingChannelList']['StreamingChannel']) {
+                                const channels = result['StreamingChannelList']['StreamingChannel'];
+                                const channel = Array.isArray(channels) ? channels[0] : channels;
+                                if (channel && channel['channelName'] && channel['channelName'][0]) {
+                                    const channelName = channel['channelName'][0];
+                                    if (channelName.trim() !== '') {
+                                        resolve(channelName.trim());
+                                        return;
+                                    }
+                                }
+                            }
+                            // Final fallback
+                            resolve("Camera");
+                        });
+                    } else {
+                        // Final fallback
+                        resolve("Camera");
+                    }
+                }).auth(this.settings.username, this.settings.password, false);
+            }).auth(this.settings.username, this.settings.password, false);
+        });
+    }
+
     async getChannels(): Promise<string[]> {
         const self = this;
         return new Promise(async (resolve) => {
             if (this.getCapabilityValue('hik_type') === 'IPCamera') {
                 console.log("initsinglecam");
-                await self.initiatecams(1, "Camera");
+                // Try to get camera name for single IP camera
+                const cameraName = await this.getSingleCameraName();
+                await self.initiatecams(1, cameraName);
                 resolve([]);
             } else {
                 const protocol = this.settings.ssl === true ? 'https://' : 'http://';
@@ -232,7 +283,10 @@ class HikCamera extends Homey.Device {
                             
                             for (i in result['InputProxyChannelList']['InputProxyChannel']) {
                                 reschannelID = result['InputProxyChannelList']['InputProxyChannel'][i]['id'];
-                                reschannelName[parseInt(reschannelID)] = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
+                                const channelName = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
+                                // Use actual camera name if available, otherwise fallback to generic name
+                                reschannelName[parseInt(reschannelID)] = channelName && channelName.trim() !== '' ? 
+                                    channelName : `Camera ${reschannelID}`;
                             }
                             resolve(reschannelName);
                         });
@@ -359,7 +413,7 @@ class HikCamera extends Homey.Device {
                 }).auth(this.settings.username, this.settings.password, false).pipe(stream);
             });
             
-            await this.setCameraImage(`Camera ${camID}`, this.homey.__(`[${camID}] ${camName}`), image);
+            await this.setCameraImage(`${camName || `Camera ${camID}`}`, this.homey.__(`[${camID}] ${camName || `Camera ${camID}`}`), image);
             
         } catch (error) {
             this.error('Error setting up camera images:', error);
