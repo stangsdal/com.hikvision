@@ -3,6 +3,7 @@
     "version": "0.2.3",
     "compatibility": ">=5.0.0",
     "sdk": 3,
+    "platforms": ["local"],
     "name": {
         "en": "Hikvision",
         "nl": "Hikvision",
@@ -28,7 +29,12 @@
         "name": "Martin P"
     },
     "contributors": {
-        "developers": []
+        "developers": [
+            {
+                "name": "Peter Kristensen",
+                "email": "peter@stangsdal.dk"
+            }
+        ]
     },
     "brandColor": "#d71820",
     "contributing": {

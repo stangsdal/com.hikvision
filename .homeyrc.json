@@ -1,0 +1,5 @@
+{
+  "build": {
+    "before": "npm run build"
+  }
+}

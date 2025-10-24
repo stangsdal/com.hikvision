@@ -1,5 +1,7 @@
 node_modules
-
+dist/
+*.tsbuildinfo
+*.log
 
 # Added by Homey CLI
 /.homeybuild/

@@ -1,58 +1,102 @@
-"use strict";
-const Homey = require("homey");
-const request = require("request");
-const xml2js = require("xml2js");
+import Homey = require('homey');
+import request = require('request');
+import xml2js = require('xml2js');
 const parser = new xml2js.Parser();
 const HikvisionAPI = require('./hikvision.js').hikvisionApi;
-let hikApi = null;
+
+interface DeviceSettings {
+    ssl: boolean;
+    address: string;
+    port: number;
+    strict: boolean;
+    username: string;
+    password: string;
+}
+
+interface Token {
+    channelID: number;
+}
+
+let hikApi: any = null;
+
 class HikCamera extends Homey.Device {
-    async onInit() {
+    private name!: string;
+    private settings!: DeviceSettings;
+    private image?: Homey.Image;
+    private image2?: Homey.Image;
+    private image3?: Homey.Image;
+    private image4?: Homey.Image;
+    private image5?: Homey.Image;
+    private image6?: Homey.Image;
+    private image7?: Homey.Image;
+    private image8?: Homey.Image;
+    private image9?: Homey.Image;
+    private image10?: Homey.Image;
+    private image11?: Homey.Image;
+    private image12?: Homey.Image;
+    private image13?: Homey.Image;
+    private image14?: Homey.Image;
+    private image15?: Homey.Image;
+    private image16?: Homey.Image;
+
+    override async onInit(): Promise<void> {
         this.name = this.getName();
         this.log(`Init device ${this.name}`);
-        this.settings = this.getSettings();
-        await this.setCapabilityValue("hik_status", false);
+        this.settings = this.getSettings() as DeviceSettings;
+	    await this.setCapabilityValue("hik_status", false);
         this.upDateCapabilities();
         this.ConnectToHik();
     }
-    async upDateCapabilities() {
-        const me = this;
+
+    async upDateCapabilities(): Promise<void> {
+	    const me = this;
         this.log('Updating Capabilities');
         const protocol = this.settings.ssl === true ? 'https://' : 'http://';
         request({
-            url: protocol + this.settings.address + ':' + this.settings.port + '/ISAPI/System/deviceInfo',
-            strictSSL: this.settings.strict,
+            url: protocol + this.settings.address + ':' + this.settings.port + '/ISAPI/System/deviceInfo', 
+            strictSSL: this.settings.strict, 
             rejectUnauthorized: this.settings.strict
-        }, (error, response, body) => {
-            if (body) {
+        }, (error: any, response: any, body: string) => {
+			if (body) {
                 const softwareVersion = body.match("<firmwareVersion>(.*)</firmwareVersion>");
                 const deviceType = body.match("<deviceType>(.*)</deviceType>");
+                
                 if (!(error) && (response.statusCode === 200) && softwareVersion && deviceType) {
                     me.setCapabilityValue("hik_type", deviceType[1]).catch(me.error);
                     me.setCapabilityValue("hik_version", softwareVersion[1]).catch(me.error);
-                    console.log('deviceType: ' + deviceType[1] + ' softwareVersion: ' + softwareVersion[1]);
+                    console.log('deviceType: '+ deviceType[1] + ' softwareVersion: '+ softwareVersion[1]);
                 }
             }
         }).auth(this.settings.username, this.settings.password, false);
     }
-    async onSettings({ oldSettings, newSettings, changedKeys }) {
+
+    override async onSettings({ oldSettings, newSettings, changedKeys }: { 
+        oldSettings: DeviceSettings; 
+        newSettings: DeviceSettings; 
+        changedKeys: string[] 
+    }): Promise<boolean> {
         this.settings = newSettings;
         this.upDateCapabilities();
         this.ConnectToHik();
         return true;
     }
-    async onAdded() {
+
+    override async onAdded(): Promise<void> {
         this.log('device added');
     }
-    async onDeleted() {
+
+    override async onDeleted(): Promise<void> {
         this.log('device deleted');
     }
-    ConnectToHik() {
+
+    ConnectToHik(): void {
         const me = this;
-        this.getChannels()
-            .then(async (reschannelName) => {
-            await this.channelOnline(reschannelName);
-        }).catch(this.error);
-        const options = {
+		this.getChannels()
+    	.then(async (reschannelName: string[]) => {
+    		   	await this.channelOnline(reschannelName);
+			}).catch(this.error);
+		
+		const options = {
             host: this.settings.address,
             port: this.settings.port,
             ssl: this.settings.ssl,
@@ -61,62 +105,69 @@ class HikCamera extends Homey.Device {
             pass: this.settings.password,
             log: false,
         };
-        hikApi = new HikvisionAPI(options);
-        hikApi.on('socket', () => {
-            me.handleConnection('connect');
-            me.homey.flow.getDeviceTriggerCard('OnConnected').trigger(me).catch(me.error);
+ 
+        hikApi = new HikvisionAPI(options);   
+        
+        hikApi.on('socket', () => { 
+	        me.handleConnection('connect');
+	        me.homey.flow.getDeviceTriggerCard('OnConnected').trigger(me).catch(me.error);
         });
-        hikApi.on('close', () => {
-            me.handleConnection('disconnect');
-            me.homey.flow.getDeviceTriggerCard('OnDisconnected').trigger(me).catch(me.error);
+        
+        hikApi.on('close', () => { 
+	        me.handleConnection('disconnect')
+	        me.homey.flow.getDeviceTriggerCard('OnDisconnected').trigger(me).catch(me.error);
         });
-        hikApi.on('error', () => {
-            me.handleConnection('error');
-            me.homey.flow.getDeviceTriggerCard('OnError').trigger(me).catch(me.error);
+        
+        hikApi.on('error', () => { 
+	        me.handleConnection('error')
+	        me.homey.flow.getDeviceTriggerCard('OnError').trigger(me).catch(me.error);
         });
-        hikApi.on('alarm', (code, action, index) => {
-            const token = {
-                channelID: index
+        
+        hikApi.on('alarm', (code: string, action: string, index: number) => {
+            const token: Token = {
+                channelID: index 
             };
+            
             if (code === 'VideoMotion' && action === 'Start') {
                 me.homey.flow.getDeviceTriggerCard('VideoMotionStart').trigger(me, token).catch(me.error);
             }
             if (code === 'VideoMotion' && action === 'Stop') {
-                me.homey.flow.getDeviceTriggerCard('VideoMotionStop').trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('VideoMotionStop').trigger(me, token).catch(me.error); 
             }
-            if (code === 'AlarmLocal' && action === 'Start') {
-                me.homey.flow.getDeviceTriggerCard('AlarmLocalStart').trigger(me, token).catch(me.error);
+            if (code === 'AlarmLocal' && action === 'Start'){
+                me.homey.flow.getDeviceTriggerCard('AlarmLocalStart').trigger(me, token).catch(me.error); 
             }
-            if (code === 'AlarmLocal' && action === 'Stop') {
+            if (code === 'AlarmLocal' && action === 'Stop')	{
                 me.homey.flow.getDeviceTriggerCard('AlarmLocalStop').trigger(me, token).catch(me.error);
-            }
-            if (code === 'VideoLoss' && action === 'Start') {
+            }	
+            if (code === 'VideoLoss' && action === 'Start')	{
                 me.homey.flow.getDeviceTriggerCard('VideoLossStart').trigger(me, token).catch(me.error);
-            }
-            if (code === 'VideoLoss' && action === 'Stop') {
+            }	
+            if (code === 'VideoLoss' && action === 'Stop')	{
                 me.homey.flow.getDeviceTriggerCard('VideoLossStop').trigger(me, token).catch(me.error);
-            }
-            if (code === 'VideoBlind' && action === 'Start') {
+            }	
+            if (code === 'VideoBlind' && action === 'Start'){
                 me.homey.flow.getDeviceTriggerCard('VideoBlindStart').trigger(me, token).catch(me.error);
-            }
-            if (code === 'VideoBlind' && action === 'Stop') {
+            }	
+            if (code === 'VideoBlind' && action === 'Stop')	{
                 me.homey.flow.getDeviceTriggerCard('VideoBlindStop').trigger(me, token).catch(me.error);
             }
-            if (code === 'LineDetection' && action === 'Start') {
+            if (code === 'LineDetection' && action === 'Start'){
                 me.homey.flow.getDeviceTriggerCard('LineDetectionStart').trigger(me, token).catch(me.error);
-            }
-            if (code === 'LineDetection' && action === 'Stop') {
+            }	
+            if (code === 'LineDetection' && action === 'Stop')	{
                 me.homey.flow.getDeviceTriggerCard('LineDetectionStop').trigger(me, token).catch(me.error);
             }
-            if (code === 'IntrusionDetection' && action === 'Start') {
+            if (code === 'IntrusionDetection' && action === 'Start'){
                 me.homey.flow.getDeviceTriggerCard('IntrusionDetectionStart').trigger(me, token).catch(me.error);
-            }
-            if (code === 'IntrusionDetection' && action === 'Stop') {
+            }	
+            if (code === 'IntrusionDetection' && action === 'Stop')	{
                 me.homey.flow.getDeviceTriggerCard('IntrusionDetectionStop').trigger(me, token).catch(me.error);
             }
         });
     }
-    handleConnection(options) {
+	
+    handleConnection(options: string): void {
         if (options === 'disconnect') {
             this.setCapabilityValue("hik_status", false).catch(this.error);
         }
@@ -130,52 +181,55 @@ class HikCamera extends Homey.Device {
             this.setCapabilityValue("hik_status", true).catch(this.error);
         }
     }
+
     // Relative PTZ
-    ptzZoom(pan, tilt, zoom, channel) {
-        const PTZurl = this.getCapabilityValue('hik_type') === "NVR" ?
-            ":" + this.settings.port + "/ISAPI/ContentMgmt/PTZCtrlProxy/channels/" + channel + "/continuous" :
-            ":" + this.settings.port + "/ISAPI/PTZCtrl/channels/" + channel + "/continuous";
+    ptzZoom(pan: number, tilt: number, zoom: number, channel: number): boolean {
+        const PTZurl = this.getCapabilityValue('hik_type') === "NVR" ? 
+            ":" + this.settings.port + "/ISAPI/ContentMgmt/PTZCtrlProxy/channels/"+ channel +"/continuous" : 
+            ":" + this.settings.port + "/ISAPI/PTZCtrl/channels/"+ channel +"/continuous";
         const protocol = this.settings.ssl === true ? 'https://' : 'http://';
+        
         request.put({
-            url: protocol + this.settings.address + PTZurl,
-            strictSSL: this.settings.strict,
-            rejectUnauthorized: this.settings.strict,
-            body: '<?xml version="1.0" encoding="UTF-8"?><PTZData><pan>' + pan + '</pan><tilt>' + tilt + '</tilt><zoom>' + zoom + '</zoom></PTZData>'
-        }, (error, response, body) => {
+            url: protocol + this.settings.address + PTZurl, 
+            strictSSL: this.settings.strict,  
+            rejectUnauthorized: this.settings.strict, 
+            body: '<?xml version="1.0" encoding="UTF-8"?><PTZData><pan>'+ pan +'</pan><tilt>'+ tilt +'</tilt><zoom>'+ zoom +'</zoom></PTZData>'
+        }, (error: any, response: any, body: string) => {
             if ((error) || (response.statusCode !== 200) || (body.trim() !== "OK")) {
                 return false;
-            }
-            else {
+            } else {
                 return true;
             }
         }).auth(this.settings.username, this.settings.password, false);
+        
         return true;
     }
-    async getChannels() {
+
+    async getChannels(): Promise<string[]> {
         const self = this;
         return new Promise(async (resolve) => {
             if (this.getCapabilityValue('hik_type') === 'IPCamera') {
                 console.log("initsinglecam");
                 await self.initiatecams(1, "Camera");
                 resolve([]);
-            }
-            else {
+            } else {
                 const protocol = this.settings.ssl === true ? 'https://' : 'http://';
+
                 // Get camera names
                 request({
-                    url: protocol + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels",
-                    strictSSL: this.settings.strict,
+                    url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels", 
+                    strictSSL: this.settings.strict, 
                     rejectUnauthorized: this.settings.strict
-                }, async (error, response, body) => {
+                }, async (error: any, response: any, body: string) => {
                     if ((error) || (response.statusCode !== 200)) {
                         await self.initiatecams(1, "Camera");
                         resolve([]);
-                    }
-                    else {
-                        parser.parseString(body, async (err, result) => {
-                            let i;
-                            let reschannelID;
-                            const reschannelName = [];
+                    } else {
+                        parser.parseString(body, async (err: any, result: any) => {
+                            let i: string;
+                            let reschannelID: string;
+                            const reschannelName: string[] = [];
+                            
                             for (i in result['InputProxyChannelList']['InputProxyChannel']) {
                                 reschannelID = result['InputProxyChannelList']['InputProxyChannel'][i]['id'];
                                 reschannelName[parseInt(reschannelID)] = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
@@ -186,41 +240,47 @@ class HikCamera extends Homey.Device {
                 }).auth(this.settings.username, this.settings.password, false);
             }
         });
-    }
-    async channelOnline(reschannelName) {
+    }   
+
+    async channelOnline(reschannelName: string[]): Promise<void> {
         const self = this;
         const protocol = this.settings.ssl === true ? 'https://' : 'http://';
+        
         // Get camera online
         request({
-            url: protocol + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels/status",
-            strictSSL: this.settings.strict,
+            url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels/status", 
+            strictSSL: this.settings.strict, 
             rejectUnauthorized: this.settings.strict
-        }, async (error, response, body) => {
+        }, async (error: any, response: any, body: string) => {
             if ((error) || (response.statusCode !== 200)) {
                 for (const i in reschannelName) {
                     await self.initiatecams(parseInt(i), reschannelName[i]);
                 }
-            }
-            else {
-                parser.parseString(body, async (err, result) => {
-                    let i;
+            } else {
+                parser.parseString(body, async (err: any, result: any) => {
+                    let i: string;
                     let reschannelID = 0;
-                    let reschannelOnline;
+                    let reschannelOnline: string;
+                    
                     for (i in result['InputProxyChannelStatusList']['InputProxyChannelStatus']) {
                         reschannelID = parseInt(result['InputProxyChannelStatusList']['InputProxyChannelStatus'][i]['id'][0]);
                         reschannelOnline = result['InputProxyChannelStatusList']['InputProxyChannelStatus'][i]['online'][0];
+                        
                         if (reschannelOnline === "true") {
                             await self.initiatecams(reschannelID, reschannelName[reschannelID]);
                         }
                     }
                 });
             }
-        }).auth(this.settings.username, this.settings.password, false);
+        }).auth(this.settings.username, this.settings.password, false);	
     }
-    async initiatecams(camID, camName) {
-        const protocol = this.settings.ssl === true ? 'https://' : 'http://';
+   
+    async initiatecams(camID: number, camName: string): Promise<void> {
+        const protocol = this.settings.ssl === true ? 'https://' : 'http://';	  
+        
         try {
-            let image;
+            let image: Homey.Image;
+            
             switch (camID) {
                 case 1:
                     this.image = await this.homey.images.createImage();
@@ -290,19 +350,21 @@ class HikCamera extends Homey.Device {
                     this.log(`Camera ${camID} not supported (max 16 cameras)`);
                     return;
             }
-            image.setStream(async (stream) => {
+            
+            image.setStream(async (stream: any) => {
                 request({
-                    url: protocol + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/" + camID + "01/picture",
-                    strictSSL: this.settings.strict,
+                    url: protocol + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/" + camID + "01/picture", 
+                    strictSSL: this.settings.strict, 
                     rejectUnauthorized: this.settings.strict
                 }).auth(this.settings.username, this.settings.password, false).pipe(stream);
             });
+            
             await this.setCameraImage(`Camera ${camID}`, this.homey.__(`[${camID}] ${camName}`), image);
-        }
-        catch (error) {
+            
+        } catch (error) {
             this.error('Error setting up camera images:', error);
         }
-    }
+    } 
 }
-module.exports = HikCamera;
-//# sourceMappingURL=device.js.map
+
+export = HikCamera;
