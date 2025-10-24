@@ -255,6 +255,52 @@ class HikCamera extends Homey.Device {
         });
     }
 
+    async getStreamingChannelNames(): Promise<string[]> {
+        const protocol = this.settings.ssl === true ? 'https://' : 'http://';
+        
+        return new Promise((resolve) => {
+            // Try streaming channels API which might have different/better names
+            request({
+                url: protocol + this.settings.address + ':' + this.settings.port + '/ISAPI/Streaming/channels', 
+                strictSSL: this.settings.strict, 
+                rejectUnauthorized: this.settings.strict
+            }, (error: any, response: any, body: string) => {
+                if (body && !error && response.statusCode === 200) {
+                    console.log("Streaming channels response:", body);
+                    parser.parseString(body, (err: any, result: any) => {
+                        if (!err && result && result['StreamingChannelList'] && result['StreamingChannelList']['StreamingChannel']) {
+                            const channels = result['StreamingChannelList']['StreamingChannel'];
+                            const channelArray = Array.isArray(channels) ? channels : [channels];
+                            const names: string[] = [];
+                            
+                            channelArray.forEach((channel: any) => {
+                                if (channel.id && channel.channelName) {
+                                    const channelId = Array.isArray(channel.id) ? parseInt(channel.id[0]) : parseInt(channel.id);
+                                    const rawName = Array.isArray(channel.channelName) ? channel.channelName[0] : channel.channelName;
+                                    const channelName = typeof rawName === 'string' ? rawName.trim() : '';
+                                    
+                                    console.log(`Streaming channel ${channelId}: "${channelName}"`);
+                                    
+                                    if (channelName && channelName !== '') {
+                                        names[channelId] = channelName;
+                                    }
+                                }
+                            });
+                            
+                            if (names.length > 0) {
+                                resolve(names);
+                                return;
+                            }
+                        }
+                        resolve([]);
+                    });
+                } else {
+                    resolve([]);
+                }
+            }).auth(this.settings.username, this.settings.password, false);
+        });
+    }
+
     async getChannels(): Promise<string[]> {
         const self = this;
         return new Promise(async (resolve) => {
@@ -267,36 +313,53 @@ class HikCamera extends Homey.Device {
             } else {
                 const protocol = this.settings.ssl === true ? 'https://' : 'http://';
 
-                // Get camera names
-                request({
-                    url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels", 
-                    strictSSL: this.settings.strict, 
-                    rejectUnauthorized: this.settings.strict
-                }, async (error: any, response: any, body: string) => {
-                    if ((error) || (response.statusCode !== 200)) {
-                        await self.initiatecams(1, "Camera");
-                        resolve([]);
-                    } else {
-                        parser.parseString(body, async (err: any, result: any) => {
-                            let i: string;
-                            let reschannelID: string;
-                            const reschannelName: string[] = [];
-                            
-                            for (i in result['InputProxyChannelList']['InputProxyChannel']) {
-                                reschannelID = result['InputProxyChannelList']['InputProxyChannel'][i]['id'];
-                                const rawChannelName = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
-                                // Handle both string and array formats from xml2js parsing
-                                const channelName = Array.isArray(rawChannelName) ? rawChannelName[0] : rawChannelName;
-                                // Use actual camera name if available, otherwise fallback to generic name
-                                reschannelName[parseInt(reschannelID)] = channelName && 
-                                    typeof channelName === 'string' && 
-                                    channelName.trim() !== '' ? 
-                                    channelName.trim() : `Camera ${reschannelID}`;
-                            }
-                            resolve(reschannelName);
-                        });
+                // First try to get camera names from streaming channels
+                this.getStreamingChannelNames().then((streamingNames: string[]) => {
+                    if (streamingNames && streamingNames.length > 0) {
+                        console.log("Using streaming channel names:", streamingNames);
+                        resolve(streamingNames);
+                        return;
                     }
-                }).auth(this.settings.username, this.settings.password, false);
+                    
+                    // Fallback to InputProxy channels
+                    request({
+                        url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels", 
+                        strictSSL: this.settings.strict, 
+                        rejectUnauthorized: this.settings.strict
+                    }, async (error: any, response: any, body: string) => {
+                        if ((error) || (response.statusCode !== 200)) {
+                            console.log("InputProxy channels failed, using default camera name");
+                            await self.initiatecams(1, "Camera");
+                            resolve([]);
+                        } else {
+                            console.log("InputProxy channels response:", body);
+                            parser.parseString(body, async (err: any, result: any) => {
+                                let i: string;
+                                let reschannelID: string;
+                                const reschannelName: string[] = [];
+                                
+                                for (i in result['InputProxyChannelList']['InputProxyChannel']) {
+                                    reschannelID = result['InputProxyChannelList']['InputProxyChannel'][i]['id'];
+                                    const rawChannelName = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
+                                    // Handle both string and array formats from xml2js parsing
+                                    const channelName = Array.isArray(rawChannelName) ? rawChannelName[0] : rawChannelName;
+                                    
+                                    // Debug logging to see what names we're getting
+                                    console.log(`Channel ${reschannelID}: raw="${JSON.stringify(rawChannelName)}", processed="${channelName}"`);
+                                    
+                                    // Use actual camera name if available, otherwise fallback to generic name
+                                    reschannelName[parseInt(reschannelID)] = channelName && 
+                                        typeof channelName === 'string' && 
+                                        channelName.trim() !== '' ? 
+                                        channelName.trim() : `Camera ${reschannelID}`;
+                                        
+                                    console.log(`Channel ${reschannelID} final name: "${reschannelName[parseInt(reschannelID)]}"`);
+                                }
+                                resolve(reschannelName);
+                            });
+                        }
+                    }).auth(this.settings.username, this.settings.password, false);
+                });
             }
         });
     }   
@@ -335,6 +398,7 @@ class HikCamera extends Homey.Device {
     }
    
     async initiatecams(camID: number, camName: string): Promise<void> {
+        console.log(`Initiating camera ${camID} with name: "${camName}"`);
         const protocol = this.settings.ssl === true ? 'https://' : 'http://';	  
         
         try {
@@ -419,6 +483,7 @@ class HikCamera extends Homey.Device {
             });
             
             await this.setCameraImage(`${camName || `Camera ${camID}`}`, this.homey.__(`[${camID}] ${camName || `Camera ${camID}`}`), image);
+            console.log(`Set camera image for ${camID}: name="${camName || `Camera ${camID}`}", description="${this.homey.__(`[${camID}] ${camName || `Camera ${camID}`}`)}"`);
             
         } catch (error) {
             this.error('Error setting up camera images:', error);
