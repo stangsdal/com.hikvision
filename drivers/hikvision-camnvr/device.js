@@ -15,17 +15,9 @@ class HikCamera extends Homey.Device {
         this.log(`Init device ${this.name}`);
         this.settings = this.getSettings();
 	    this.setCapabilityValue("hik_status", false);
-        this.driver = await this._getDriver();
         this.upDateCapabilities();
         this.ConnectToHik();
     }
-
-	async _getDriver() {
-		return new Promise((resolve) => {
-			const driver = this.getDriver();
-			driver.ready(() => resolve(driver));
-		});
-	}
 
     async upDateCapabilities()
     {
@@ -51,14 +43,14 @@ class HikCamera extends Homey.Device {
 }
 
 
-    onSettings( oldSettingsObj, newSettingsObj, changedKeysArr, callback ) {
+    async onSettings( { oldSettings, newSettings, changedKeys } ) {
 
-        this.settings = newSettingsObj;
+        this.settings = newSettings;
 
 
         this.upDateCapabilities();
         this.ConnectToHik();
-        callback( null, true );
+        return true;
     }
 
     onAdded() {
@@ -72,8 +64,8 @@ class HikCamera extends Homey.Device {
     ConnectToHik() {
 const me = this;
 		this.getChannels()
-    	.then(reschannelName => {
-    		   	this.channelOnline(reschannelName);
+    	.then(async reschannelName => {
+    		   	await this.channelOnline(reschannelName);
 				}).catch(this.error)
 
         
@@ -91,15 +83,15 @@ const me = this;
 hikApi = new HikvisionAPI(options);   
    hikApi.on('socket', function(){ 
 	me.handleConnection('connect');
-	me.driver._triggers.trgOnConnected.trigger(me).catch(me.error);
+	me.homey.flow.getDeviceTriggerCard('OnConnected').trigger(me).catch(me.error);
    });
    hikApi.on('close', function(){ 
 	me.handleConnection('disconnect')
-	me.driver._triggers.trgOnDisconnected.trigger(me).catch(me.error);
+	me.homey.flow.getDeviceTriggerCard('OnDisconnected').trigger(me).catch(me.error);
    });
    hikApi.on('error', function(){ 
 	me.handleConnection('error')
-	me.driver._triggers.trgOnError.trigger(me).catch(me.error);
+	me.homey.flow.getDeviceTriggerCard('OnError').trigger(me).catch(me.error);
    });	  
 hikApi.on('alarm', function(code, action, index) {
 			   const token = 
@@ -107,40 +99,40 @@ hikApi.on('alarm', function(code, action, index) {
 				channelID: index 
 				};
 				 if (code === 'VideoMotion' && action === 'Start') {
-                me.driver._triggers.trgTVideoMotionStart.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('VideoMotionStart').trigger(me, token).catch(me.error);
             }
             if (code === 'VideoMotion' && action === 'Stop') {
-                me.driver._triggers.trgVideoMotionStop.trigger(me, token).catch(me.error); 
+                me.homey.flow.getDeviceTriggerCard('VideoMotionStop').trigger(me, token).catch(me.error); 
             }
             if (code === 'AlarmLocal' && action === 'Start'){
-                me.driver._triggers.trgAlarmLocalStart.trigger(me, token).catch(me.error); 
+                me.homey.flow.getDeviceTriggerCard('AlarmLocalStart').trigger(me, token).catch(me.error); 
             }
             if (code === 'AlarmLocal' && action === 'Stop')	{
-                me.driver._triggers.trgAlarmLocalStop.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('AlarmLocalStop').trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoLoss' && action === 'Start')	{
-                me.driver._triggers.trgVideoLossStart.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('VideoLossStart').trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoLoss' && action === 'Stop')	{
-                me.driver._triggers.trgVideoLossStop.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('VideoLossStop').trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoBlind' && action === 'Start'){
-                me.driver._triggers.trgVideoBlindStart.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('VideoBlindStart').trigger(me, token).catch(me.error);
             }	
             if (code === 'VideoBlind' && action === 'Stop')	{
-                me.driver._triggers.trgVideoBlindStop.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('VideoBlindStop').trigger(me, token).catch(me.error);
             }
             if (code === 'LineDetection' && action === 'Start'){
-                me.driver._triggers.trgLineDetectionStart.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('LineDetectionStart').trigger(me, token).catch(me.error);
             }	
             if (code === 'LineDetection' && action === 'Stop')	{
-                me.driver._triggers.trgLineDetectionStop.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('LineDetectionStop').trigger(me, token).catch(me.error);
             }
             if (code === 'IntrusionDetection' && action === 'Start'){
-                me.driver._triggers.trgIntrusionDetectionStart.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('IntrusionDetectionStart').trigger(me, token).catch(me.error);
             }	
             if (code === 'IntrusionDetection' && action === 'Stop')	{
-                me.driver._triggers.trgIntrusionDetectionStop.trigger(me, token).catch(me.error);
+                me.homey.flow.getDeviceTriggerCard('IntrusionDetectionStop').trigger(me, token).catch(me.error);
             }
 			
 
@@ -161,7 +153,7 @@ if(options === 'error')
 {
 console.log('setunavailable');
 this.setCapabilityValue("hik_status", false);
-this.setUnavailable(Homey.__("error"));
+this.setUnavailable(this.homey.__("error"));
 }
 if(options == 'connect')
 {
@@ -192,22 +184,22 @@ var protocol = this.settings.ssl == true ? 'https://' : 'http://';
 
 
 
-getChannels()  {
+async getChannels()  {
 var self = this;
-return new Promise((resolve) => {
+return new Promise(async (resolve) => {
 if(this.getCapabilityValue('hik_type') === 'IPCamera')
 {
 console.log("initsinglecam");
-self.initiatecams(1, "Camera");
+await self.initiatecams(1, "Camera");
 }
 else
 {
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';
 
 //get camera names
-request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}, function (error, response, body) {
+request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}, async function (error, response, body) {
 		if ((error) || (response.statusCode !== 200)) {
-		self.initiatecams(1, "Camera");
+		await self.initiatecams(1, "Camera");
 		}
 		else
 		{
@@ -227,20 +219,20 @@ resolve(reschannelName);
   })
 }   
 
-channelOnline(reschannelName) {
+async channelOnline(reschannelName) {
 var self = this;
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';
 //get camera online
-request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels/status", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}, function (error, response, body) {
+request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels/status", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}, async function (error, response, body) {
 		if ((error) || (response.statusCode !== 200)) {
 		for (i in reschannelName) {
-		self.initiatecams(i, reschannelName[i]);
+		await self.initiatecams(i, reschannelName[i]);
 			return true;
 		}
 		}
 		else
 		{
-			parser.parseString(body, function(err, result) {
+			parser.parseString(body, async function(err, result) {
 				var i;
 				var reschannelID = 0;
 				var reschannelOnline;
@@ -250,7 +242,7 @@ reschannelID = result['InputProxyChannelStatusList']['InputProxyChannelStatus'][
 reschannelOnline = result['InputProxyChannelStatusList']['InputProxyChannelStatus'][i]['online'][0];
 if (reschannelOnline === "true")
 {
-self.initiatecams(reschannelID, reschannelName[reschannelID]);
+await self.initiatecams(reschannelID, reschannelName[reschannelID]);
 }
 }
 			});
@@ -261,169 +253,121 @@ self.initiatecams(reschannelID, reschannelName[reschannelID]);
 }
    
    
-initiatecams(camID, camName)  {
+async initiatecams(camID, camName)  {
 
 var protocol = this.settings.ssl == true ? 'https://' : 'http://';	  
 	  
 if(camID == 1){	 
- this.image = new Homey.Image();
+ this.image = await this.homey.images.createImage();
     this.image.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image.register()
-    	.then(() => {
-    		   	return this.setCameraImage('Camera 1',  Homey.__("[1] " + camName), this.image );
-				}).catch(this.error);
+    return this.setCameraImage('Camera 1',  this.homey.__("[1] " + camName), this.image );
 }
 if(camID == 2){	  
- this.image2 = new Homey.Image();
+ this.image2 = await this.homey.images.createImage();
     this.image2.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image2.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 2',  Homey.__("[2] " + camName), this.image2 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 2',  this.homey.__("[2] " + camName), this.image2 );
 }
 if(camID == 3){	  
- this.image3 = new Homey.Image();
+ this.image3 = await this.homey.images.createImage();
     this.image3.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image3.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 3',  Homey.__("[3] " + camName), this.image3 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 3',  this.homey.__("[3] " + camName), this.image3 );
 }
 if(camID == 4){	  
- this.image4 = new Homey.Image();
+ this.image4 = await this.homey.images.createImage();
     this.image4.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image4.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 4',  Homey.__("[4] " + camName), this.image4 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 4',  this.homey.__("[4] " + camName), this.image4 );
 }
 if(camID == 5){	  
- this.image5 = new Homey.Image();
+ this.image5 = await this.homey.images.createImage();
     this.image5.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image5.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 5',  Homey.__("[5] " + camName), this.image5 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 5',  this.homey.__("[5] " + camName), this.image5 );
 }
 if(camID == 6){	  
- this.image6 = new Homey.Image();
+ this.image6 = await this.homey.images.createImage();
     this.image6.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image6.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 6',  Homey.__("[6] " + camName), this.image6 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 6',  this.homey.__("[6] " + camName), this.image6 );
 }
 if(camID == 7){	  
- this.image7 = new Homey.Image();
+ this.image7 = await this.homey.images.createImage();
     this.image7.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image7.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 7',  Homey.__("[7] " + camName), this.image7 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 7',  this.homey.__("[7] " + camName), this.image7 );
 }
 if(camID == 8){	  
- this.image8 = new Homey.Image();
+ this.image8 = await this.homey.images.createImage();
     this.image8.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image8.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 8',  Homey.__("[8] " + camName), this.image8 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 8',  this.homey.__("[8] " + camName), this.image8 );
 }
 if(camID == 9){	  
- this.image9 = new Homey.Image();
+ this.image9 = await this.homey.images.createImage();
     this.image9.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image9.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 9',  Homey.__("[9] " + camName), this.image9 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 9',  this.homey.__("[9] " + camName), this.image9 );
 }
 if(camID == 10){	  
- this.image10 = new Homey.Image();
+ this.image10 = await this.homey.images.createImage();
     this.image10.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image10.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 10',  Homey.__("[10] " + camName), this.image10 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 10',  this.homey.__("[10] " + camName), this.image10 );
 }
 if(camID == 11){	  
- this.image11 = new Homey.Image();
+ this.image11 = await this.homey.images.createImage();
     this.image11.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image11.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 11',  Homey.__("[11] " + camName), this.image11 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 11',  this.homey.__("[11] " + camName), this.image11 );
 }
 if(camID == 12){	  
- this.image12 = new Homey.Image();
+ this.image12 = await this.homey.images.createImage();
     this.image12.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image12.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 12',  Homey.__("[12] " + camName), this.image12 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 12',  this.homey.__("[12] " + camName), this.image12 );
 }
 if(camID == 13){	  
- this.image13 = new Homey.Image();
+ this.image13 = await this.homey.images.createImage();
     this.image13.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image13.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 13',  Homey.__("[13] " + camName), this.image13 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 13',  this.homey.__("[13] " + camName), this.image13 );
 }
 if(camID == 14){	  
- this.image14 = new Homey.Image();
+ this.image14 = await this.homey.images.createImage();
     this.image14.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image14.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 14',  Homey.__("[14] " + camName), this.image14 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 14',  this.homey.__("[14] " + camName), this.image14 );
 }
 if(camID == 15){	  
- this.image15 = new Homey.Image();
+ this.image15 = await this.homey.images.createImage();
     this.image15.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image15.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 15',  Homey.__("[15] " + camName), this.image15 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 15',  this.homey.__("[15] " + camName), this.image15 );
 }
 if(camID == 16){	  
- this.image16 = new Homey.Image();
+ this.image16 = await this.homey.images.createImage();
     this.image16.setStream(async (stream) => {
 	request({url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/Streaming/channels/"+ camID +"01/picture", strictSSL: this.settings.strict, rejectUnauthorized: this.settings.strict}).auth(this.settings.username,this.settings.password,false).pipe(stream);
     });
-    this.image16.register()
-    	.then(() => {
-    		    return this.setCameraImage('Camera 16',  Homey.__("[16] " + camName), this.image16 ); 
-				}).catch(this.error);
+    return this.setCameraImage('Camera 16',  this.homey.__("[16] " + camName), this.image16 );
 }
 
 

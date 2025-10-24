@@ -4,7 +4,7 @@ const Homey = require('homey');
 
 class HikvisionApp extends Homey.App {
 	
-	onInit() {
+	async onInit() {
 		this.log('Hikvision is running...');
 	}
 	

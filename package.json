@@ -1,0 +1,25 @@
+{
+  "name": "com.hikvision",
+  "version": "0.2.3",
+  "description": "Hikvision Camera support for Homey",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "homey",
+    "hikvision",
+    "camera",
+    "security"
+  ],
+  "author": "Martin P <martin@pussamsies.de>",
+  "license": "MIT",
+  "dependencies": {
+    "homey": "^3.0.0",
+    "request": "^2.88.2",
+    "xml2js": "^0.4.23"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
