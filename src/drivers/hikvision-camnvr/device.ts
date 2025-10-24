@@ -235,8 +235,9 @@ class HikCamera extends Homey.Device {
                                 const channels = result['StreamingChannelList']['StreamingChannel'];
                                 const channel = Array.isArray(channels) ? channels[0] : channels;
                                 if (channel && channel['channelName'] && channel['channelName'][0]) {
-                                    const channelName = channel['channelName'][0];
-                                    if (channelName.trim() !== '') {
+                                    const rawChannelName = channel['channelName'][0];
+                                    const channelName = Array.isArray(rawChannelName) ? rawChannelName[0] : rawChannelName;
+                                    if (channelName && typeof channelName === 'string' && channelName.trim() !== '') {
                                         resolve(channelName.trim());
                                         return;
                                     }
@@ -283,10 +284,14 @@ class HikCamera extends Homey.Device {
                             
                             for (i in result['InputProxyChannelList']['InputProxyChannel']) {
                                 reschannelID = result['InputProxyChannelList']['InputProxyChannel'][i]['id'];
-                                const channelName = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
+                                const rawChannelName = result['InputProxyChannelList']['InputProxyChannel'][i]['name'];
+                                // Handle both string and array formats from xml2js parsing
+                                const channelName = Array.isArray(rawChannelName) ? rawChannelName[0] : rawChannelName;
                                 // Use actual camera name if available, otherwise fallback to generic name
-                                reschannelName[parseInt(reschannelID)] = channelName && channelName.trim() !== '' ? 
-                                    channelName : `Camera ${reschannelID}`;
+                                reschannelName[parseInt(reschannelID)] = channelName && 
+                                    typeof channelName === 'string' && 
+                                    channelName.trim() !== '' ? 
+                                    channelName.trim() : `Camera ${reschannelID}`;
                             }
                             resolve(reschannelName);
                         });
