@@ -317,11 +317,12 @@ class HikCamera extends Homey.Device {
                 this.getStreamingChannelNames().then((streamingNames: string[]) => {
                     if (streamingNames && streamingNames.length > 0) {
                         console.log("Using streaming channel names:", streamingNames);
-                        resolve(streamingNames);
-                        return;
+                        // Skip streaming names for now as they don't contain actual camera names
+                        // resolve(streamingNames);
+                        // return;
                     }
                     
-                    // Fallback to InputProxy channels
+                    // Use InputProxy channels which should have the actual camera names
                     request({
                         url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels", 
                         strictSSL: this.settings.strict, 
@@ -368,28 +369,55 @@ class HikCamera extends Homey.Device {
         const self = this;
         const protocol = this.settings.ssl === true ? 'https://' : 'http://';
         
-        // Get camera online
+        // Get camera online status
         request({
             url: protocol  + this.settings.address + ":" + this.settings.port + "/ISAPI/ContentMgmt/InputProxy/channels/status", 
             strictSSL: this.settings.strict, 
             rejectUnauthorized: this.settings.strict
         }, async (error: any, response: any, body: string) => {
             if ((error) || (response.statusCode !== 200)) {
-                for (const i in reschannelName) {
-                    await self.initiatecams(parseInt(i), reschannelName[i]);
+                console.log("Channel status failed, using all available camera names");
+                for (let i = 1; i <= 6; i++) {
+                    const cameraName = reschannelName[i] || `Camera ${i}`;
+                    console.log(`Fallback: Initializing camera ${i} with name: "${cameraName}"`);
+                    await self.initiatecams(i, cameraName);
                 }
             } else {
+                console.log("Channel status response:", body);
                 parser.parseString(body, async (err: any, result: any) => {
-                    let i: string;
+                    if (err || !result) {
+                        console.log("Failed to parse channel status, using all camera names");
+                        for (let i = 1; i <= 6; i++) {
+                            const cameraName = reschannelName[i] || `Camera ${i}`;
+                            await self.initiatecams(i, cameraName);
+                        }
+                        return;
+                    }
+                    
                     let reschannelID = 0;
                     let reschannelOnline: string;
                     
-                    for (i in result['InputProxyChannelStatusList']['InputProxyChannelStatus']) {
-                        reschannelID = parseInt(result['InputProxyChannelStatusList']['InputProxyChannelStatus'][i]['id'][0]);
-                        reschannelOnline = result['InputProxyChannelStatusList']['InputProxyChannelStatus'][i]['online'][0];
+                    if (result['InputProxyChannelStatusList'] && result['InputProxyChannelStatusList']['InputProxyChannelStatus']) {
+                        const statusList = result['InputProxyChannelStatusList']['InputProxyChannelStatus'];
+                        const statusArray = Array.isArray(statusList) ? statusList : [statusList];
                         
-                        if (reschannelOnline === "true") {
-                            await self.initiatecams(reschannelID, reschannelName[reschannelID]);
+                        for (const status of statusArray) {
+                            reschannelID = parseInt(Array.isArray(status.id) ? status.id[0] : status.id);
+                            reschannelOnline = Array.isArray(status.online) ? status.online[0] : status.online;
+                            
+                            console.log(`Channel ${reschannelID} online status: ${reschannelOnline}`);
+                            
+                            if (reschannelOnline === "true") {
+                                const cameraName = reschannelName[reschannelID] || `Camera ${reschannelID}`;
+                                console.log(`Initializing online camera ${reschannelID} with name: "${cameraName}"`);
+                                await self.initiatecams(reschannelID, cameraName);
+                            }
+                        }
+                    } else {
+                        console.log("No channel status found, initializing all cameras");
+                        for (let i = 1; i <= 6; i++) {
+                            const cameraName = reschannelName[i] || `Camera ${i}`;
+                            await self.initiatecams(i, cameraName);
                         }
                     }
                 });
