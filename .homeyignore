@@ -1,0 +1,67 @@
+src/
+node_modules/**/@types/
+**/*.map
+**/*.ts
+**/*.d.ts
+coverage/
+test/
+.git/
+tsconfig.json
+tsconfig.*.json
+tsconfig.tsbuildinfo
+
+# Development files - exclude from Homey package
+#node_modules/
+#node_modules
+# dist/
+# dist
+# src/
+# src
+.homeybuild/
+.homeybuild
+.git/
+.git
+.vscode/
+.vscode
+
+# TypeScript files
+*.ts
+*.d.ts
+*.d.ts.map
+tsconfig.json
+
+# ESLint configuration
+eslint.config.js
+.eslintrc*
+.eslintignore
+
+# Build artifacts
+*.js.map
+
+# Development documentation
+TYPESCRIPT_CONVERSION.md
+SDK3_MIGRATION_NOTES.md
+CLEANUP_SUMMARY.md
+
+# Package management files
+package-lock.json
+package-lock.json.backup
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+test/
+tests/
+*.test.js
+*.spec.js
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp

@@ -21,8 +21,8 @@
         "nl": ["Hikvision","Camera","Security", "ABUS", "Grundig", "Annke", "CCTVStar"]
     },
     "images": {
-        "large": "/assets/images/large.png",
-        "small": "/assets/images/small.png"
+        "large": "assets/images/large.png",
+        "small": "assets/images/small.png"
     },
     "author": {
         "email": "martin@pussamsies.de",
@@ -54,7 +54,7 @@
             },
             "getable": true,
             "setable": false,
-		    "icon": "/assets/info.svg"
+		    "icon": "assets/info.svg"
         },
         "hik_version": {
             "type": "string",
@@ -65,7 +65,7 @@
             },
             "getable": true,
             "setable": false,
-			"icon": "/assets/info.svg"
+			"icon": "assets/info.svg"
         },
 		        "hik_status": {
             "type": "boolean",
@@ -87,7 +87,7 @@
 			},
             "getable": true,
             "setable": false,
-		    "icon": "/assets/info.svg"
+		    "icon": "assets/info.svg"
         }
     },
     "flow": {
