@@ -17,6 +17,10 @@ interface CameraSettings {
   refreshRate: number;
   enableSubStream: boolean;
   snapshotResolution: string;
+  enableAlarmForwarding: boolean;
+  motionSensitivity: string;
+  autoSnapshot: boolean;
+  alarmCooldown: number;
 }
 
 interface StreamInfo {
@@ -44,6 +48,20 @@ interface ConnectionStats {
   connectionStrength: number;
 }
 
+interface AlarmHistoryEntry {
+  timestamp: number;
+  type: string;
+  action: string;
+  duration?: number;
+  details?: string;
+}
+
+interface AlarmHistory {
+  entries: AlarmHistoryEntry[];
+  maxEntries: number;
+  currentAlarm?: AlarmHistoryEntry;
+}
+
 class HikvisionCameraDevice extends Homey.Device {
   private settings!: CameraSettings;
   private mainImage?: Homey.Image;
@@ -55,6 +73,11 @@ class HikvisionCameraDevice extends Homey.Device {
     consecutiveFailures: 0,
     averageResponseTime: 0,
     connectionStrength: 0
+  };
+  private alarmHistory: AlarmHistory = {
+    entries: [],
+    maxEntries: 100, // Keep last 100 alarm events
+    currentAlarm: undefined
   };
   private streamInfo: StreamInfo = {
     mainStreamUrl: '',
@@ -443,9 +466,32 @@ class HikvisionCameraDevice extends Homey.Device {
     }
   }
 
-  // Enhanced method to handle alarm events from the NVR
+  // Enhanced method to handle alarm events from the NVR with history tracking
   handleAlarmEvent(code: string, action: string): void {
-    this.log(`Camera ${this.settings.channel} alarm: ${code} - ${action}`);
+    const timestamp = Date.now();
+    this.log(`Camera ${this.settings.channel} alarm: ${code} - ${action} at ${new Date(timestamp).toISOString()}`);
+
+    // Handle alarm history and duration tracking
+    if (action === 'Start') {
+      // End previous alarm if one is active
+      if (this.alarmHistory.currentAlarm) {
+        this.alarmHistory.currentAlarm.duration = timestamp - this.alarmHistory.currentAlarm.timestamp;
+        this.addAlarmToHistory(this.alarmHistory.currentAlarm);
+      }
+
+      // Start new alarm
+      this.alarmHistory.currentAlarm = {
+        timestamp: timestamp,
+        type: code,
+        action: action,
+        details: `Camera ${this.settings.channel} - ${this.settings.name}`
+      };
+    } else if (action === 'Stop' && this.alarmHistory.currentAlarm && this.alarmHistory.currentAlarm.type === code) {
+      // End current alarm
+      this.alarmHistory.currentAlarm.duration = timestamp - this.alarmHistory.currentAlarm.timestamp;
+      this.addAlarmToHistory(this.alarmHistory.currentAlarm);
+      this.alarmHistory.currentAlarm = undefined;
+    }
 
     // Update alarm state based on alarm type and action
     let alarmState = 'Idle';
@@ -456,8 +502,10 @@ class HikvisionCameraDevice extends Homey.Device {
         case 'VideoMotion':
           alarmState = 'Motion Detected';
           this.setCapabilityValue('motion_detected', true).catch(this.error);
-          // Auto-capture snapshot on motion detection
-          this.takeSnapshot().catch(this.error);
+          // Auto-capture snapshot on motion detection if enabled
+          if (this.settings.autoSnapshot !== false) {
+            this.takeSnapshot().catch(this.error);
+          }
           break;
         case 'AlarmLocal':
           alarmState = 'Local Alarm';
@@ -692,6 +740,48 @@ class HikvisionCameraDevice extends Homey.Device {
     }
   }
 
+  /**
+   * Add an alarm entry to the history with rotation
+   */
+  private addAlarmToHistory(alarmEntry: AlarmHistoryEntry): void {
+    this.alarmHistory.entries.unshift(alarmEntry);
+
+    // Rotate history if it exceeds max entries
+    if (this.alarmHistory.entries.length > this.alarmHistory.maxEntries) {
+      this.alarmHistory.entries = this.alarmHistory.entries.slice(0, this.alarmHistory.maxEntries);
+    }
+
+    // Log the alarm with duration for debugging
+    const duration = alarmEntry.duration ? `(${(alarmEntry.duration / 1000).toFixed(1)}s)` : '';
+    this.log(`Alarm logged: ${alarmEntry.type} ${alarmEntry.action} ${duration} - Total: ${this.alarmHistory.entries.length} entries`);
+  }
+
+  /**
+   * Get alarm history for the camera
+   */
+  getAlarmHistory(): AlarmHistory {
+    return {
+      ...this.alarmHistory,
+      entries: [...this.alarmHistory.entries] // Return a copy
+    };
+  }
+
+  /**
+   * Clear alarm history
+   */
+  clearAlarmHistory(): void {
+    this.alarmHistory.entries = [];
+    this.alarmHistory.currentAlarm = undefined;
+    this.log('Alarm history cleared');
+  }
+
+  /**
+   * Get recent alarms within specified time window (in minutes)
+   */
+  getRecentAlarms(minutes: number = 60): AlarmHistoryEntry[] {
+    const cutoffTime = Date.now() - (minutes * 60 * 1000);
+    return this.alarmHistory.entries.filter(entry => entry.timestamp > cutoffTime);
+  }
 
   // Method to get current streaming statistics
   getStreamingStats(): StreamingStats {

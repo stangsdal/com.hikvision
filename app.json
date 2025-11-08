@@ -1075,6 +1075,24 @@
                         "filter": "driver_id=hikvision-camera"
                     }
                 ]
+            },
+            {
+                "id": "camera_clear_alarm_history",
+                "title": {
+                    "en": "Clear Alarm History",
+                    "nl": "Alarm Geschiedenis Wissen",
+                    "de": "Alarmverlauf Löschen"
+                },
+                "titleFormatted": {
+                    "en": "Clear all alarm history entries for this camera"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
             }
         ],
         "conditions": [

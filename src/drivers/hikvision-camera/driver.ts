@@ -9,8 +9,15 @@ class HikvisionCameraDriver extends Homey.Driver {
   }
 
   registerFlowCards(): void {
-    // Flow cards will be registered when they are defined in app.json
-    // Condition cards will be handled in the app-level registration
+    // Register condition cards for camera states
+    this.registerConditionCards();
+  }
+
+  registerConditionCards(): void {
+    // Note: Condition cards are typically registered in the app.ts file
+    // This method serves as a placeholder for future condition card registration
+    // The condition cards are already defined in app.json and will be handled by the Homey platform
+    this.log('Camera condition cards available: camera_is_online, camera_motion_detected, camera_is_recording, camera_connection_good, camera_alarm_active');
   }
 
   registerActions(): void {
@@ -94,6 +101,17 @@ class HikvisionCameraDriver extends Homey.Driver {
       .registerRunListener(async (args) => {
         if (args.device) {
           return args.device.stopPTZ();
+        }
+        return false;
+      });
+
+    // Clear alarm history
+    this.homey.flow
+      .getActionCard('camera_clear_alarm_history')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          args.device.clearAlarmHistory();
+          return true;
         }
         return false;
       });
