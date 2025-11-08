@@ -1050,6 +1050,37 @@ class HikvisionCameraDevice extends Homey.Device {
     await this.setCapabilityValue('alarm_state', 'Idle');
     await this.setCapabilityValue('last_alarm', 'None');
 
+    // Register capability listeners
+    // @ts-ignore - TypeScript types may be incomplete for Homey SDK 3
+    this.registerCapabilityListener('recording_status', async (value: boolean) => {
+      this.log(`Recording status change requested: ${value}`);
+      try {
+        if (value) {
+          // Start recording
+          const recordingId = await this.startRecording();
+          if (recordingId) {
+            this.log(`Recording started with ID: ${recordingId}`);
+          } else {
+            this.log('Failed to start recording');
+            await this.setCapabilityValue('recording_status', false);
+          }
+        } else {
+          // Stop recording
+          const success = await this.stopRecording();
+          if (success) {
+            this.log('Recording stopped successfully');
+          } else {
+            this.log('Failed to stop recording');
+            await this.setCapabilityValue('recording_status', true);
+          }
+        }
+      } catch (error) {
+        this.error('Error handling recording status change:', error);
+        // Revert to previous state on error
+        await this.setCapabilityValue('recording_status', !value);
+      }
+    });
+
     // Setup streaming and monitoring
     await this.setupAdvancedStreaming();
     this.startAdvancedConnectionMonitoring();
