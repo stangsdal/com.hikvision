@@ -110,7 +110,7 @@ class HikvisionCameraDriver extends Homey.Driver {
     });
   }
 
-  override async onPairListDevices(): Promise<any[]> {
+  override async onPairListDevices(): Promise<object[]> {
     // Return empty array for now - devices will be added manually
     return [];
   }

@@ -1,5 +1,6 @@
 import Homey = require('homey');
 import request = require('request');
+import { Writable } from 'stream';
 
 interface CameraSettings {
   channel: number;
@@ -25,6 +26,17 @@ interface StreamInfo {
   protocol: string;
 }
 
+interface StreamingStats {
+  connectionStats: ConnectionStats;
+  streamInfo: StreamInfo;
+  settings: {
+    quality: string;
+    resolution: string;
+    refreshRate: number;
+    subStreamEnabled: boolean;
+  };
+}
+
 interface ConnectionStats {
   lastSuccessfulConnect: number;
   consecutiveFailures: number;
@@ -36,8 +48,8 @@ class HikvisionCameraDevice extends Homey.Device {
   private settings!: CameraSettings;
   private mainImage?: Homey.Image;
   private subImage?: Homey.Image;
-  private connectionCheckInterval?: any;
-  private imageRefreshInterval?: any;
+  private connectionCheckInterval?: ReturnType<typeof setTimeout>;
+  private imageRefreshInterval?: ReturnType<typeof setTimeout>;
   private connectionStats: ConnectionStats = {
     lastSuccessfulConnect: 0,
     consecutiveFailures: 0,
@@ -54,10 +66,10 @@ class HikvisionCameraDevice extends Homey.Device {
   override async onInit(): Promise<void> {
     this.log(`Init camera device: ${this.getName()}`);
     this.settings = this.getSettings() as CameraSettings;
-    
+
     // Initialize default settings if not set
     this.initializeDefaultSettings();
-    
+
     // Set initial capability values
     await this.setCapabilityValue('camera_status', false);
     await this.setCapabilityValue('motion_detected', false);
@@ -67,7 +79,7 @@ class HikvisionCameraDevice extends Homey.Device {
     await this.setCapabilityValue('ptz_position', 'Unknown');
     await this.setCapabilityValue('alarm_state', 'Idle');
     await this.setCapabilityValue('last_alarm', 'None');
-    
+
     // Setup streaming and monitoring
     await this.setupAdvancedStreaming();
     this.startAdvancedConnectionMonitoring();
@@ -124,11 +136,11 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       this.buildStreamUrls();
       await this.setupMainStream();
-      
+
       if (this.settings.enableSubStream) {
         await this.setupSubStream();
       }
-      
+
       this.startImageRefresh();
     } catch (error) {
       this.error('Error setting up advanced streaming:', error);
@@ -138,23 +150,23 @@ class HikvisionCameraDevice extends Homey.Device {
   private buildStreamUrls(): void {
     const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
     const baseUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}`;
-    
+
     // Main stream (usually channel01)
     this.streamInfo.mainStreamUrl = `${baseUrl}/ISAPI/Streaming/channels/${this.settings.channel}01/picture`;
-    
+
     // Sub stream (usually channel02) - lower quality for better performance
     this.streamInfo.subStreamUrl = `${baseUrl}/ISAPI/Streaming/channels/${this.settings.channel}02/picture`;
-    
+
     // High quality snapshot URL
     this.streamInfo.snapshotUrl = `${baseUrl}/ISAPI/Streaming/channels/${this.settings.channel}01/picture?snapShotImageType=JPEG`;
-    
+
     this.streamInfo.protocol = this.settings.nvrSsl ? 'HTTPS' : 'HTTP';
   }
 
   private async setupMainStream(): Promise<void> {
     try {
       this.mainImage = await this.homey.images.createImage();
-      
+
       this.mainImage.setStream(async (stream) => {
         this.createStreamRequest(this.streamInfo.mainStreamUrl, stream);
       });
@@ -168,7 +180,7 @@ class HikvisionCameraDevice extends Homey.Device {
   private async setupSubStream(): Promise<void> {
     try {
       this.subImage = await this.homey.images.createImage();
-      
+
       this.subImage.setStream(async (stream) => {
         this.createStreamRequest(this.streamInfo.subStreamUrl, stream);
       });
@@ -179,9 +191,9 @@ class HikvisionCameraDevice extends Homey.Device {
     }
   }
 
-  private createStreamRequest(url: string, stream: any): void {
+  private createStreamRequest(url: string, stream: Writable): void {
     const startTime = Date.now();
-    
+
     const req = request({
       url: url,
       strictSSL: this.settings.nvrStrict,
@@ -193,11 +205,11 @@ class HikvisionCameraDevice extends Homey.Device {
     });
 
     req.auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
-    
+
     req.on('response', (response) => {
       const responseTime = Date.now() - startTime;
       this.updateConnectionStats(true, responseTime);
-      
+
       if (response.statusCode === 200) {
         this.log(`Stream connected successfully (${responseTime}ms)`);
       }
@@ -219,7 +231,7 @@ class HikvisionCameraDevice extends Homey.Device {
 
     // Refresh images based on configured refresh rate
     const refreshIntervalMs = (this.settings.refreshRate || 5) * 1000;
-    
+
     this.imageRefreshInterval = setInterval(() => {
       this.refreshCameraImages();
     }, refreshIntervalMs);
@@ -230,7 +242,7 @@ class HikvisionCameraDevice extends Homey.Device {
       if (this.mainImage) {
         await this.setCameraImage('camera_main', `${this.settings.name} (Main)`, this.mainImage);
       }
-      
+
       if (this.subImage && this.settings.enableSubStream) {
         await this.setCameraImage('camera_sub', `${this.settings.name} (Sub)`, this.subImage);
       }
@@ -254,7 +266,7 @@ class HikvisionCameraDevice extends Homey.Device {
       const startTime = Date.now();
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const statusUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/InputProxy/channels/${this.settings.channel}/status`;
-      
+
       request({
         url: statusUrl,
         strictSSL: this.settings.nvrStrict,
@@ -263,10 +275,10 @@ class HikvisionCameraDevice extends Homey.Device {
       }, async (error, response, _body) => {
         const responseTime = Date.now() - startTime;
         const isOnline = !error && response && response.statusCode === 200;
-        
+
         this.updateConnectionStats(isOnline, responseTime);
         await this.setCapabilityValue('camera_status', isOnline);
-        
+
         if (isOnline) {
           await this.setAvailable();
           // Also check if we need to get additional camera info
@@ -275,7 +287,7 @@ class HikvisionCameraDevice extends Homey.Device {
           await this.setUnavailable('Camera offline');
         }
       }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
-      
+
     } catch (error) {
       this.error('Error in advanced connection check:', error);
       this.updateConnectionStats(false, 0);
@@ -288,29 +300,29 @@ class HikvisionCameraDevice extends Homey.Device {
     if (success) {
       this.connectionStats.lastSuccessfulConnect = Date.now();
       this.connectionStats.consecutiveFailures = 0;
-      
+
       // Update average response time (simple moving average)
-      this.connectionStats.averageResponseTime = 
+      this.connectionStats.averageResponseTime =
         (this.connectionStats.averageResponseTime + responseTime) / 2;
-      
+
       // Calculate connection strength (0-100)
       let strength = 100;
-      if (responseTime > 5000) strength = 20;
-      else if (responseTime > 3000) strength = 40;
-      else if (responseTime > 2000) strength = 60;
-      else if (responseTime > 1000) strength = 80;
-      
+      if (responseTime > 5000) {strength = 20;}
+      else if (responseTime > 3000) {strength = 40;}
+      else if (responseTime > 2000) {strength = 60;}
+      else if (responseTime > 1000) {strength = 80;}
+
       this.connectionStats.connectionStrength = strength;
     } else {
       this.connectionStats.consecutiveFailures++;
-      
+
       // Reduce connection strength based on consecutive failures
       this.connectionStats.connectionStrength = Math.max(
-        0, 
+        0,
         this.connectionStats.connectionStrength - (this.connectionStats.consecutiveFailures * 20)
       );
     }
-    
+
     this.setCapabilityValue('connection_strength', this.connectionStats.connectionStrength)
       .catch(this.error);
   }
@@ -328,7 +340,7 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const recordUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/record/tracks/${this.settings.channel}01`;
-      
+
       request({
         url: recordUrl,
         strictSSL: this.settings.nvrStrict,
@@ -341,7 +353,7 @@ class HikvisionCameraDevice extends Homey.Device {
           await this.setCapabilityValue('recording_status', isRecording);
         }
       }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
-      
+
     } catch (error) {
       this.error('Error checking recording status:', error);
     }
@@ -351,9 +363,9 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const ptzUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/PTZCtrlProxy/channels/${this.settings.channel}/continuous`;
-      
+
       const body = `<?xml version="1.0" encoding="UTF-8"?><PTZData><pan>${pan}</pan><tilt>${tilt}</tilt><zoom>${zoom}</zoom></PTZData>`;
-      
+
       return new Promise((resolve) => {
         request.put({
           url: ptzUrl,
@@ -365,15 +377,15 @@ class HikvisionCameraDevice extends Homey.Device {
             'Content-Type': 'application/xml'
           }
         }, (error, response, responseBody) => {
-          const success = !error && response && response.statusCode === 200 && 
+          const success = !error && response && response.statusCode === 200 &&
                          (responseBody.trim() === 'OK' || response.statusCode === 200);
-          
+
           if (success) {
             this.log(`PTZ control successful: pan=${pan}, tilt=${tilt}, zoom=${zoom}`);
           } else {
             this.error(`PTZ control failed: ${error || response?.statusCode || 'unknown error'}`);
           }
-          
+
           resolve(success);
         }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
       });
@@ -386,7 +398,7 @@ class HikvisionCameraDevice extends Homey.Device {
   async takeSnapshot(): Promise<boolean> {
     try {
       this.log('Taking high-quality snapshot...');
-      
+
       // Use dedicated snapshot URL for best quality
       const startTime = Date.now();
       const req = request({
@@ -400,14 +412,14 @@ class HikvisionCameraDevice extends Homey.Device {
       });
 
       req.auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
-      
+
       return new Promise((resolve) => {
         req.on('response', async (response) => {
           const responseTime = Date.now() - startTime;
-          
+
           if (response.statusCode === 200) {
             this.log(`Snapshot captured successfully (${responseTime}ms)`);
-            
+
             // Refresh the main camera image to show the latest snapshot
             if (this.mainImage) {
               await this.setCameraImage('camera_main', `${this.settings.name} (Main)`, this.mainImage);
@@ -424,7 +436,7 @@ class HikvisionCameraDevice extends Homey.Device {
           resolve(false);
         });
       });
-      
+
     } catch (error) {
       this.error('Error taking snapshot:', error);
       return false;
@@ -434,11 +446,11 @@ class HikvisionCameraDevice extends Homey.Device {
   // Enhanced method to handle alarm events from the NVR
   handleAlarmEvent(code: string, action: string): void {
     this.log(`Camera ${this.settings.channel} alarm: ${code} - ${action}`);
-    
+
     // Update alarm state based on alarm type and action
     let alarmState = 'Idle';
     const lastAlarm = code;
-    
+
     if (action === 'Start') {
       switch (code) {
         case 'VideoMotion':
@@ -471,7 +483,7 @@ class HikvisionCameraDevice extends Homey.Device {
         this.setCapabilityValue('motion_detected', false).catch(this.error);
       }
     }
-    
+
     // Update alarm capabilities
     this.setCapabilityValue('alarm_state', alarmState).catch(this.error);
     this.setCapabilityValue('last_alarm', lastAlarm).catch(this.error);
@@ -492,7 +504,7 @@ class HikvisionCameraDevice extends Homey.Device {
         .trigger(this)
         .catch(this.error);
     }
-    
+
     // Trigger general alarm flow card
     if (action === 'Start') {
       this.homey.flow.getDeviceTriggerCard('camera_alarm_triggered')
@@ -505,7 +517,7 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const recordUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/record/control/manual/start/tracks/${this.settings.channel}01`;
-      
+
       return new Promise((resolve) => {
         request.put({
           url: recordUrl,
@@ -514,14 +526,14 @@ class HikvisionCameraDevice extends Homey.Device {
           timeout: 5000
         }, async (error, response) => {
           const success = !error && response && (response.statusCode === 200 || response.statusCode === 201);
-          
+
           if (success) {
             await this.setCapabilityValue('recording_status', true);
             this.log('Recording started successfully');
           } else {
             this.error('Failed to start recording:', error || response?.statusCode);
           }
-          
+
           resolve(success);
         }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
       });
@@ -535,7 +547,7 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const recordUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/record/control/manual/stop/tracks/${this.settings.channel}01`;
-      
+
       return new Promise((resolve) => {
         request.put({
           url: recordUrl,
@@ -544,14 +556,14 @@ class HikvisionCameraDevice extends Homey.Device {
           timeout: 5000
         }, async (error, response) => {
           const success = !error && response && (response.statusCode === 200 || response.statusCode === 201);
-          
+
           if (success) {
             await this.setCapabilityValue('recording_status', false);
             this.log('Recording stopped successfully');
           } else {
             this.error('Failed to stop recording:', error || response?.statusCode);
           }
-          
+
           resolve(success);
         }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
       });
@@ -564,13 +576,13 @@ class HikvisionCameraDevice extends Homey.Device {
   async refreshStream(): Promise<boolean> {
     try {
       this.log('Refreshing camera streams...');
-      
+
       // Restart streaming setup
       await this.setupAdvancedStreaming();
-      
+
       // Force immediate image refresh
       await this.refreshCameraImages();
-      
+
       this.log('Camera streams refreshed successfully');
       return true;
     } catch (error) {
@@ -583,7 +595,7 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const presetUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/PTZCtrlProxy/channels/${this.settings.channel}/presets/${presetNumber}/goto`;
-      
+
       return new Promise((resolve) => {
         request.put({
           url: presetUrl,
@@ -592,14 +604,14 @@ class HikvisionCameraDevice extends Homey.Device {
           timeout: 8000
         }, async (error, response) => {
           const success = !error && response && (response.statusCode === 200 || response.statusCode === 201);
-          
+
           if (success) {
             await this.setCapabilityValue('ptz_position', `Preset ${presetNumber}`);
             this.log(`Moved to preset ${presetNumber} successfully`);
           } else {
             this.error(`Failed to go to preset ${presetNumber}:`, error || response?.statusCode);
           }
-          
+
           resolve(success);
         }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
       });
@@ -613,9 +625,9 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const presetUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/PTZCtrlProxy/channels/${this.settings.channel}/presets/${presetNumber}`;
-      
+
       const body = `<?xml version="1.0" encoding="UTF-8"?><PTZPreset><id>${presetNumber}</id><presetName>Preset${presetNumber}</presetName></PTZPreset>`;
-      
+
       return new Promise((resolve) => {
         request.put({
           url: presetUrl,
@@ -628,13 +640,13 @@ class HikvisionCameraDevice extends Homey.Device {
           }
         }, (error, response) => {
           const success = !error && response && (response.statusCode === 200 || response.statusCode === 201);
-          
+
           if (success) {
             this.log(`Preset ${presetNumber} set successfully`);
           } else {
             this.error(`Failed to set preset ${presetNumber}:`, error || response?.statusCode);
           }
-          
+
           resolve(success);
         }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
       });
@@ -648,9 +660,9 @@ class HikvisionCameraDevice extends Homey.Device {
     try {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const stopUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/PTZCtrlProxy/channels/${this.settings.channel}/continuous`;
-      
+
       const body = '<?xml version="1.0" encoding="UTF-8"?><PTZData><pan>0</pan><tilt>0</tilt><zoom>0</zoom></PTZData>';
-      
+
       return new Promise((resolve) => {
         request.put({
           url: stopUrl,
@@ -663,14 +675,14 @@ class HikvisionCameraDevice extends Homey.Device {
           }
         }, async (error, response) => {
           const success = !error && response && response.statusCode === 200;
-          
+
           if (success) {
             await this.setCapabilityValue('ptz_position', 'Stopped');
             this.log('PTZ movement stopped successfully');
           } else {
             this.error('Failed to stop PTZ movement:', error || response?.statusCode);
           }
-          
+
           resolve(success);
         }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
       });
@@ -681,9 +693,8 @@ class HikvisionCameraDevice extends Homey.Device {
   }
 
 
-
   // Method to get current streaming statistics
-  getStreamingStats(): any {
+  getStreamingStats(): StreamingStats {
     return {
       connectionStats: this.connectionStats,
       streamInfo: this.streamInfo,

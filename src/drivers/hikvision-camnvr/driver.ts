@@ -1,5 +1,5 @@
-import Homey = require("homey");
-import request = require("request");
+import Homey = require('homey');
+import request = require('request');
 
 interface DeviceCallback {
   name: string;
@@ -38,12 +38,12 @@ class HikvisionDriver extends Homey.Driver {
   private _triggers!: FlowCardTriggers;
 
   override async onInit(): Promise<void> {
-    this.log("Init driver");
+    this.log('Init driver');
 
     this.registerFlowCards();
 
     this.homey.flow
-      .getActionCard("ptzcontinuous")
+      .getActionCard('ptzcontinuous')
       .registerRunListener(async (args: any, _state: any): Promise<boolean> => {
         if (args.device) {
           return args.device.ptzZoom(
@@ -59,39 +59,39 @@ class HikvisionDriver extends Homey.Driver {
 
   registerFlowCards(): void {
     this._triggers = {
-      trgOnConnected: this.homey.flow.getDeviceTriggerCard("OnConnected"),
-      trgOnDisconnected: this.homey.flow.getDeviceTriggerCard("OnDisconnected"),
-      trgOnError: this.homey.flow.getDeviceTriggerCard("OnError"),
+      trgOnConnected: this.homey.flow.getDeviceTriggerCard('OnConnected'),
+      trgOnDisconnected: this.homey.flow.getDeviceTriggerCard('OnDisconnected'),
+      trgOnError: this.homey.flow.getDeviceTriggerCard('OnError'),
       trgTVideoMotionStart:
-        this.homey.flow.getDeviceTriggerCard("VideoMotionStart"),
+        this.homey.flow.getDeviceTriggerCard('VideoMotionStart'),
       trgVideoMotionStop:
-        this.homey.flow.getDeviceTriggerCard("VideoMotionStop"),
+        this.homey.flow.getDeviceTriggerCard('VideoMotionStop'),
       trgAlarmLocalStart:
-        this.homey.flow.getDeviceTriggerCard("AlarmLocalStart"),
-      trgAlarmLocalStop: this.homey.flow.getDeviceTriggerCard("AlarmLocalStop"),
-      trgVideoLossStart: this.homey.flow.getDeviceTriggerCard("VideoLossStart"),
-      trgVideoLossStop: this.homey.flow.getDeviceTriggerCard("VideoLossStop"),
+        this.homey.flow.getDeviceTriggerCard('AlarmLocalStart'),
+      trgAlarmLocalStop: this.homey.flow.getDeviceTriggerCard('AlarmLocalStop'),
+      trgVideoLossStart: this.homey.flow.getDeviceTriggerCard('VideoLossStart'),
+      trgVideoLossStop: this.homey.flow.getDeviceTriggerCard('VideoLossStop'),
       trgVideoBlindStart:
-        this.homey.flow.getDeviceTriggerCard("VideoBlindStart"),
-      trgVideoBlindStop: this.homey.flow.getDeviceTriggerCard("VideoBlindStop"),
+        this.homey.flow.getDeviceTriggerCard('VideoBlindStart'),
+      trgVideoBlindStop: this.homey.flow.getDeviceTriggerCard('VideoBlindStop'),
       trgLineDetectionStart:
-        this.homey.flow.getDeviceTriggerCard("LineDetectionStart"),
+        this.homey.flow.getDeviceTriggerCard('LineDetectionStart'),
       trgLineDetectionStop:
-        this.homey.flow.getDeviceTriggerCard("LineDetectionStop"),
+        this.homey.flow.getDeviceTriggerCard('LineDetectionStop'),
       trgIntrusionDetectionStart: this.homey.flow.getDeviceTriggerCard(
-        "IntrusionDetectionStart"
+        'IntrusionDetectionStart'
       ),
       trgIntrusionDetectionStop: this.homey.flow.getDeviceTriggerCard(
-        "IntrusionDetectionStop"
-      ),
+        'IntrusionDetectionStop'
+      )
     };
   }
 
   override async onPair(session: Homey.PairSession): Promise<void> {
     session.setHandler(
-      "testConnection",
+      'testConnection',
       async (data: ConnectionData): Promise<DeviceCallback> => {
-        const protocol = data.ssl === true ? "https://" : "http://";
+        const protocol = data.ssl === true ? 'https://' : 'http://';
 
         return new Promise((resolve, _reject) => {
           request(
@@ -99,16 +99,16 @@ class HikvisionDriver extends Homey.Driver {
               url:
                 protocol +
                 data.address +
-                ":" +
+                ':' +
                 data.port +
-                "/ISAPI/System/deviceInfo",
+                '/ISAPI/System/deviceInfo',
               strictSSL: data.strict,
               rejectUnauthorized: data.strict,
-              timeout: 5000,
+              timeout: 5000
             },
             (error: any, response: any, body: string) => {
               if (body) {
-                console.log("## start test connection ##");
+                console.log('## start test connection ##');
                 console.log(
                   protocol +
                     data.address +
@@ -117,29 +117,29 @@ class HikvisionDriver extends Homey.Driver {
                     data.username
                 );
                 console.log(body);
-                const deviceName = body.match("<deviceName>(.*)</deviceName>");
-                const deviceID = body.match("<deviceID>(.*)</deviceID>");
+                const deviceName = body.match('<deviceName>(.*)</deviceName>');
+                const deviceID = body.match('<deviceID>(.*)</deviceID>');
                 console.log(response.statusCode);
                 if (error || response.statusCode !== 200) {
                   const deviceCallback: DeviceCallback = {
-                    name: "",
-                    id: "",
-                    error: response.statusCode || 404,
+                    name: '',
+                    id: '',
+                    error: response.statusCode || 404
                   };
                   resolve(deviceCallback);
                 } else {
                   const deviceCallback: DeviceCallback = {
-                    name: deviceName ? deviceName[1] : "",
-                    id: deviceID ? deviceID[1] : "",
-                    error: "",
+                    name: deviceName ? deviceName[1] : '',
+                    id: deviceID ? deviceID[1] : '',
+                    error: ''
                   };
                   resolve(deviceCallback);
                 }
               } else {
                 const deviceCallback: DeviceCallback = {
-                  name: "",
-                  id: "",
-                  error: 404,
+                  name: '',
+                  id: '',
+                  error: 404
                 };
                 resolve(deviceCallback);
               }
@@ -151,7 +151,7 @@ class HikvisionDriver extends Homey.Driver {
   }
 
   override async onPairListDevices(data?: any): Promise<any[]> {
-    this.log("list devices");
+    this.log('list devices');
 
     const devices: any[] = [];
 
