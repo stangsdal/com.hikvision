@@ -154,6 +154,43 @@
             "getable": true,
             "setable": true,
 		    "icon": "assets/record.svg"
+        },
+        "stream_quality": {
+            "type": "string",
+            "title": {
+                "en": "Stream Quality",
+                "nl": "Stream Kwaliteit",
+				"de": "Stream Qualität"
+            },
+            "getable": true,
+            "setable": false,
+		    "icon": "assets/video.svg"
+        },
+        "connection_strength": {
+            "type": "number",
+            "title": {
+                "en": "Connection Strength",
+                "nl": "Verbindingssterkte",
+				"de": "Verbindungsstärke"
+            },
+            "units": "%",
+            "min": 0,
+            "max": 100,
+			"insights": true,
+            "getable": true,
+            "setable": false,
+		    "icon": "assets/signal.svg"
+        },
+        "ptz_position": {
+            "type": "string",
+            "title": {
+                "en": "PTZ Position",
+                "nl": "PTZ Positie",
+				"de": "PTZ Position"
+            },
+            "getable": true,
+            "setable": false,
+		    "icon": "assets/position.svg"
         }
     },
     "flow": {
@@ -886,6 +923,136 @@
                         "filter": "driver_id=hikvision-camera"
                     }
                 ]
+            },
+            {
+                "id": "camera_start_recording",
+                "title": {
+                    "en": "Start Recording",
+                    "nl": "Start Opname",
+                    "de": "Aufnahme Starten"
+                },
+                "titleFormatted": {
+                    "en": "Start recording on camera"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_stop_recording",
+                "title": {
+                    "en": "Stop Recording",
+                    "nl": "Stop Opname",
+                    "de": "Aufnahme Stoppen"
+                },
+                "titleFormatted": {
+                    "en": "Stop recording on camera"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_refresh_stream",
+                "title": {
+                    "en": "Refresh Camera Stream",
+                    "nl": "Ververs Camera Stream",
+                    "de": "Kamera Stream Aktualisieren"
+                },
+                "titleFormatted": {
+                    "en": "Refresh the camera image stream"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_goto_preset",
+                "title": {
+                    "en": "Go to PTZ Preset",
+                    "nl": "Ga naar PTZ Preset",
+                    "de": "Zu PTZ Preset Gehen"
+                },
+                "titleFormatted": {
+                    "en": "Move camera to preset [[preset_number]]"
+                },
+                "args": [
+                    {
+                        "name": "preset_number",
+                        "type": "number",
+                        "min": 1,
+                        "max": 255,
+                        "placeholder": {
+                            "en": "Preset Number",
+                            "nl": "Preset Nummer",
+                            "de": "Preset Nummer"
+                        }
+                    },
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_set_preset",
+                "title": {
+                    "en": "Set PTZ Preset",
+                    "nl": "Stel PTZ Preset In",
+                    "de": "PTZ Preset Setzen"
+                },
+                "titleFormatted": {
+                    "en": "Save current position as preset [[preset_number]]"
+                },
+                "args": [
+                    {
+                        "name": "preset_number",
+                        "type": "number",
+                        "min": 1,
+                        "max": 255,
+                        "placeholder": {
+                            "en": "Preset Number",
+                            "nl": "Preset Nummer",
+                            "de": "Preset Nummer"
+                        }
+                    },
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_ptz_stop",
+                "title": {
+                    "en": "Stop PTZ Movement",
+                    "nl": "Stop PTZ Beweging",
+                    "de": "PTZ Bewegung Stoppen"
+                },
+                "titleFormatted": {
+                    "en": "Stop all PTZ movements"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
             }
         ]
     },
@@ -995,7 +1162,7 @@
         {
             "id": "hikvision-camera",
             "class": "sensor",
-            "capabilities": ["camera_status", "motion_detected", "recording_status"],
+            "capabilities": ["camera_status", "motion_detected", "recording_status", "stream_quality", "connection_strength", "ptz_position"],
             "name": {
                 "en": "Hikvision Camera",
                 "nl": "Hikvision Camera",
@@ -1058,6 +1225,173 @@
                                 "nl": "NVR Apparaat ID",
                                 "de": "NVR Gerät ID"
                             }
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "label": {
+                        "en": "Streaming Settings",
+                        "nl": "Streaming Instellingen",
+                        "de": "Streaming Einstellungen"
+                    },
+                    "children": [
+                        {
+                            "id": "streamQuality",
+                            "type": "dropdown",
+                            "value": "high",
+                            "label": {
+                                "en": "Stream Quality",
+                                "nl": "Stream Kwaliteit",
+                                "de": "Stream Qualität"
+                            },
+                            "values": [
+                                {
+                                    "id": "low",
+                                    "label": {
+                                        "en": "Low (Sub-stream)",
+                                        "nl": "Laag (Sub-stream)",
+                                        "de": "Niedrig (Sub-stream)"
+                                    }
+                                },
+                                {
+                                    "id": "medium",
+                                    "label": {
+                                        "en": "Medium",
+                                        "nl": "Medium",
+                                        "de": "Mittel"
+                                    }
+                                },
+                                {
+                                    "id": "high",
+                                    "label": {
+                                        "en": "High (Main-stream)",
+                                        "nl": "Hoog (Main-stream)",
+                                        "de": "Hoch (Main-stream)"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "streamResolution",
+                            "type": "dropdown",
+                            "value": "1920x1080",
+                            "label": {
+                                "en": "Stream Resolution",
+                                "nl": "Stream Resolutie",
+                                "de": "Stream Auflösung"
+                            },
+                            "values": [
+                                {
+                                    "id": "640x480",
+                                    "label": {
+                                        "en": "640x480 (VGA)",
+                                        "nl": "640x480 (VGA)",
+                                        "de": "640x480 (VGA)"
+                                    }
+                                },
+                                {
+                                    "id": "1280x720",
+                                    "label": {
+                                        "en": "1280x720 (HD)",
+                                        "nl": "1280x720 (HD)",
+                                        "de": "1280x720 (HD)"
+                                    }
+                                },
+                                {
+                                    "id": "1920x1080",
+                                    "label": {
+                                        "en": "1920x1080 (Full HD)",
+                                        "nl": "1920x1080 (Full HD)",
+                                        "de": "1920x1080 (Full HD)"
+                                    }
+                                },
+                                {
+                                    "id": "2560x1440",
+                                    "label": {
+                                        "en": "2560x1440 (2K)",
+                                        "nl": "2560x1440 (2K)",
+                                        "de": "2560x1440 (2K)"
+                                    }
+                                },
+                                {
+                                    "id": "3840x2160",
+                                    "label": {
+                                        "en": "3840x2160 (4K)",
+                                        "nl": "3840x2160 (4K)",
+                                        "de": "3840x2160 (4K)"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "refreshRate",
+                            "type": "number",
+                            "value": 5,
+                            "min": 1,
+                            "max": 30,
+                            "units": "s",
+                            "label": {
+                                "en": "Image Refresh Rate",
+                                "nl": "Beeld Verversingssnelheid",
+                                "de": "Bildaktualisierungsrate"
+                            },
+                            "hint": {
+                                "en": "How often to refresh the camera image (seconds)",
+                                "nl": "Hoe vaak het camera beeld wordt ververst (seconden)",
+                                "de": "Wie oft das Kamerabild aktualisiert wird (Sekunden)"
+                            }
+                        },
+                        {
+                            "id": "enableSubStream",
+                            "type": "checkbox",
+                            "value": true,
+                            "label": {
+                                "en": "Enable Sub-stream",
+                                "nl": "Sub-stream Inschakelen",
+                                "de": "Sub-stream Aktivieren"
+                            },
+                            "hint": {
+                                "en": "Enable lower quality sub-stream for better performance",
+                                "nl": "Schakel lagere kwaliteit sub-stream in voor betere prestaties",
+                                "de": "Niedrigere Qualität Sub-stream für bessere Leistung aktivieren"
+                            }
+                        },
+                        {
+                            "id": "snapshotResolution",
+                            "type": "dropdown",
+                            "value": "high",
+                            "label": {
+                                "en": "Snapshot Resolution",
+                                "nl": "Momentopname Resolutie",
+                                "de": "Schnappschuss Auflösung"
+                            },
+                            "values": [
+                                {
+                                    "id": "low",
+                                    "label": {
+                                        "en": "Low Quality",
+                                        "nl": "Lage Kwaliteit",
+                                        "de": "Niedrige Qualität"
+                                    }
+                                },
+                                {
+                                    "id": "medium",
+                                    "label": {
+                                        "en": "Medium Quality",
+                                        "nl": "Gemiddelde Kwaliteit",
+                                        "de": "Mittlere Qualität"
+                                    }
+                                },
+                                {
+                                    "id": "high",
+                                    "label": {
+                                        "en": "High Quality",
+                                        "nl": "Hoge Kwaliteit",
+                                        "de": "Hohe Qualität"
+                                    }
+                                }
+                            ]
                         }
                     ]
                 }

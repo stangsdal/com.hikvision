@@ -16,7 +16,7 @@ class HikvisionCameraDriver extends Homey.Driver {
     // PTZ Control for individual camera
     this.homey.flow
       .getActionCard('camera_ptz_control')
-      .registerRunListener(async (args: any) => {
+      .registerRunListener(async (args) => {
         if (args.device) {
           return args.device.ptzControl(
             args.pannumber,
@@ -30,9 +30,69 @@ class HikvisionCameraDriver extends Homey.Driver {
     // Take snapshot
     this.homey.flow
       .getActionCard('camera_take_snapshot')
-      .registerRunListener(async (args: any) => {
+      .registerRunListener(async (args) => {
         if (args.device) {
           return args.device.takeSnapshot();
+        }
+        return false;
+      });
+
+    // Start recording
+    this.homey.flow
+      .getActionCard('camera_start_recording')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.startRecording();
+        }
+        return false;
+      });
+
+    // Stop recording
+    this.homey.flow
+      .getActionCard('camera_stop_recording')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.stopRecording();
+        }
+        return false;
+      });
+
+    // Refresh stream
+    this.homey.flow
+      .getActionCard('camera_refresh_stream')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.refreshStream();
+        }
+        return false;
+      });
+
+    // Go to PTZ preset
+    this.homey.flow
+      .getActionCard('camera_goto_preset')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.goToPreset(args.preset_number);
+        }
+        return false;
+      });
+
+    // Set PTZ preset
+    this.homey.flow
+      .getActionCard('camera_set_preset')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.setPreset(args.preset_number);
+        }
+        return false;
+      });
+
+    // Stop PTZ movement
+    this.homey.flow
+      .getActionCard('camera_ptz_stop')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.stopPTZ();
         }
         return false;
       });
