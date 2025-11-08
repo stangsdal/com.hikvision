@@ -62,6 +62,22 @@ interface AlarmHistory {
   currentAlarm?: AlarmHistoryEntry;
 }
 
+interface PTZPreset {
+  id: number;
+  name: string;
+  pan: number;
+  tilt: number;
+  zoom: number;
+  created: number;
+  lastUsed?: number;
+}
+
+interface PTZPresetManager {
+  presets: PTZPreset[];
+  maxPresets: number;
+  currentPosition?: { pan: number; tilt: number; zoom: number };
+}
+
 class HikvisionCameraDevice extends Homey.Device {
   private settings!: CameraSettings;
   private mainImage?: Homey.Image;
@@ -78,6 +94,11 @@ class HikvisionCameraDevice extends Homey.Device {
     entries: [],
     maxEntries: 100, // Keep last 100 alarm events
     currentAlarm: undefined
+  };
+  private ptzPresetManager: PTZPresetManager = {
+    presets: [],
+    maxPresets: 255, // Hikvision supports up to 255 presets
+    currentPosition: undefined
   };
   private streamInfo: StreamInfo = {
     mainStreamUrl: '',
@@ -654,8 +675,16 @@ class HikvisionCameraDevice extends Homey.Device {
           const success = !error && response && (response.statusCode === 200 || response.statusCode === 201);
 
           if (success) {
-            await this.setCapabilityValue('ptz_position', `Preset ${presetNumber}`);
-            this.log(`Moved to preset ${presetNumber} successfully`);
+            // Update preset usage tracking
+            const preset = this.ptzPresetManager.presets.find(p => p.id === presetNumber);
+            if (preset) {
+              preset.lastUsed = Date.now();
+              await this.setCapabilityValue('ptz_position', `${preset.name} (${presetNumber})`);
+              this.log(`Moved to preset "${preset.name}" (${presetNumber}) successfully`);
+            } else {
+              await this.setCapabilityValue('ptz_position', `Preset ${presetNumber}`);
+              this.log(`Moved to preset ${presetNumber} successfully`);
+            }
           } else {
             this.error(`Failed to go to preset ${presetNumber}:`, error || response?.statusCode);
           }
@@ -781,6 +810,171 @@ class HikvisionCameraDevice extends Homey.Device {
   getRecentAlarms(minutes: number = 60): AlarmHistoryEntry[] {
     const cutoffTime = Date.now() - (minutes * 60 * 1000);
     return this.alarmHistory.entries.filter(entry => entry.timestamp > cutoffTime);
+  }
+
+  /**
+   * Enhanced PTZ Preset Management
+   */
+
+  /**
+   * Create a named PTZ preset at current position
+   */
+  async createNamedPreset(presetId: number, name: string): Promise<boolean> {
+    try {
+      // First get current PTZ position
+      const position = await this.getCurrentPTZPosition();
+      if (!position) {
+        this.error('Could not get current PTZ position for preset creation');
+        return false;
+      }
+
+      // Call the original setPreset method with enhanced XML
+      const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
+      const presetUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/PTZCtrlProxy/channels/${this.settings.channel}/presets/${presetId}`;
+
+      const body = `<?xml version="1.0" encoding="UTF-8"?><PTZPreset><id>${presetId}</id><presetName>${name}</presetName></PTZPreset>`;
+
+      return new Promise((resolve) => {
+        request.put({
+          url: presetUrl,
+          strictSSL: this.settings.nvrStrict,
+          rejectUnauthorized: this.settings.nvrStrict,
+          body: body,
+          timeout: 8000,
+          headers: {
+            'Content-Type': 'application/xml'
+          }
+        }, (error, response) => {
+          const success = !error && response && (response.statusCode === 200 || response.statusCode === 201);
+
+          if (success) {
+            // Add to local preset manager
+            const preset: PTZPreset = {
+              id: presetId,
+              name: name,
+              pan: position.pan,
+              tilt: position.tilt,
+              zoom: position.zoom,
+              created: Date.now()
+            };
+            this.addPresetToManager(preset);
+            this.log(`Named preset "${name}" (ID: ${presetId}) created successfully`);
+          } else {
+            this.error(`Failed to create named preset "${name}":`, error || response?.statusCode);
+          }
+
+          resolve(success);
+        }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
+      });
+
+    } catch (error) {
+      this.error('Error creating named preset:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get current PTZ position from camera
+   */
+  async getCurrentPTZPosition(): Promise<{ pan: number; tilt: number; zoom: number } | null> {
+    try {
+      const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
+      const statusUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/PTZCtrl/channels/${this.settings.channel}/status`;
+
+      return new Promise((resolve) => {
+        request.get({
+          url: statusUrl,
+          strictSSL: this.settings.nvrStrict,
+          rejectUnauthorized: this.settings.nvrStrict,
+          timeout: 5000
+        }, (error, response, body) => {
+          if (!error && response && response.statusCode === 200 && body) {
+            try {
+              // Parse XML response to get PTZ position
+              const panMatch = body.match(/<azimuth>([^<]+)<\/azimuth>/);
+              const tiltMatch = body.match(/<elevation>([^<]+)<\/elevation>/);
+              const zoomMatch = body.match(/<absoluteZoom>([^<]+)<\/absoluteZoom>/);
+
+              if (panMatch && tiltMatch && zoomMatch) {
+                const position = {
+                  pan: parseFloat(panMatch[1]),
+                  tilt: parseFloat(tiltMatch[1]),
+                  zoom: parseFloat(zoomMatch[1])
+                };
+                this.ptzPresetManager.currentPosition = position;
+                resolve(position);
+                return;
+              }
+            } catch (parseError) {
+              this.error('Error parsing PTZ status:', parseError);
+            }
+          }
+          resolve(null);
+        }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
+      });
+
+    } catch (error) {
+      this.error('Error getting PTZ position:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Add preset to local manager
+   */
+  private addPresetToManager(preset: PTZPreset): void {
+    // Remove existing preset with same ID
+    this.ptzPresetManager.presets = this.ptzPresetManager.presets.filter(p => p.id !== preset.id);
+    
+    // Add new preset
+    this.ptzPresetManager.presets.push(preset);
+    
+    // Sort by ID
+    this.ptzPresetManager.presets.sort((a, b) => a.id - b.id);
+
+    this.log(`Preset manager updated: ${this.ptzPresetManager.presets.length} presets`);
+  }
+
+  /**
+   * Get all managed presets
+   */
+  getAllPresets(): PTZPreset[] {
+    return [...this.ptzPresetManager.presets];
+  }
+
+  /**
+   * Delete a preset
+   */
+  async deletePreset(presetId: number): Promise<boolean> {
+    try {
+      const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
+      const presetUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/ContentMgmt/PTZCtrlProxy/channels/${this.settings.channel}/presets/${presetId}`;
+
+      return new Promise((resolve) => {
+        request.delete({
+          url: presetUrl,
+          strictSSL: this.settings.nvrStrict,
+          rejectUnauthorized: this.settings.nvrStrict,
+          timeout: 5000
+        }, (error, response) => {
+          const success = !error && response && (response.statusCode === 200 || response.statusCode === 204);
+
+          if (success) {
+            // Remove from local manager
+            this.ptzPresetManager.presets = this.ptzPresetManager.presets.filter(p => p.id !== presetId);
+            this.log(`Preset ${presetId} deleted successfully`);
+          } else {
+            this.error(`Failed to delete preset ${presetId}:`, error || response?.statusCode);
+          }
+
+          resolve(success);
+        }).auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
+      });
+
+    } catch (error) {
+      this.error('Error deleting preset:', error);
+      return false;
+    }
   }
 
   // Method to get current streaming statistics

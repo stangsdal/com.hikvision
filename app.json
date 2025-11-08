@@ -1093,6 +1093,73 @@
                         "filter": "driver_id=hikvision-camera"
                     }
                 ]
+            },
+            {
+                "id": "camera_create_named_preset",
+                "title": {
+                    "en": "Create Named PTZ Preset",
+                    "nl": "Benoemde PTZ Voorinstelling Maken",
+                    "de": "Benannte PTZ Voreinstellung Erstellen"
+                },
+                "titleFormatted": {
+                    "en": "Create preset [[preset_name]] with ID [[preset_id]] at current position"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    },
+                    {
+                        "name": "preset_id",
+                        "type": "number",
+                        "min": 1,
+                        "max": 255,
+                        "title": {
+                            "en": "Preset ID",
+                            "nl": "Voorinstelling ID",
+                            "de": "Voreinstellung ID"
+                        }
+                    },
+                    {
+                        "name": "preset_name",
+                        "type": "text",
+                        "title": {
+                            "en": "Preset Name",
+                            "nl": "Voorinstelling Naam",
+                            "de": "Voreinstellung Name"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "camera_delete_preset",
+                "title": {
+                    "en": "Delete PTZ Preset",
+                    "nl": "PTZ Voorinstelling Verwijderen",
+                    "de": "PTZ Voreinstellung Löschen"
+                },
+                "titleFormatted": {
+                    "en": "Delete preset with ID [[preset_id]]"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    },
+                    {
+                        "name": "preset_id",
+                        "type": "number",
+                        "min": 1,
+                        "max": 255,
+                        "title": {
+                            "en": "Preset ID",
+                            "nl": "Voorinstelling ID",
+                            "de": "Voreinstellung ID"
+                        }
+                    }
+                ]
             }
         ],
         "conditions": [
