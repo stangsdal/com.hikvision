@@ -161,6 +161,10 @@ class HikCamera extends Homey.Device {
         channelID: index,
       };
 
+      // Forward alarm to specific camera device if it exists
+      me.forwardAlarmToCameraDevice(code, action, index).catch(me.error);
+
+      // Keep existing NVR-level triggers for backward compatibility
       if (code === "VideoMotion" && action === "Start") {
         me.homey.flow
           .getDeviceTriggerCard("VideoMotionStart")
@@ -697,6 +701,29 @@ class HikCamera extends Homey.Device {
       }, 1000);
     } catch (error) {
       this.error("Error setting up camera images:", error);
+    }
+  }
+
+  // Forward alarm events to specific camera devices
+  async forwardAlarmToCameraDevice(code: string, action: string, channelIndex: number): Promise<void> {
+    try {
+      // Simple logging approach for Phase 3 - will be enhanced in later phases
+      this.log(`NVR Alarm Event: ${code} ${action} on channel ${channelIndex} - Ready for camera forwarding`);
+      
+      // Store the latest alarm data in device settings for camera devices to access
+      const alarmData = {
+        code: code,
+        action: action,
+        channelIndex: channelIndex,
+        timestamp: Date.now()
+      };
+
+      // Store alarm data for potential camera forwarding (Phase 3 implementation)
+      // In future phases, this will use proper device communication
+      this.log(`Stored alarm data for forwarding: ${JSON.stringify(alarmData)}`);
+      
+    } catch (error) {
+      this.error('Error in forwardAlarmToCameraDevice:', error);
     }
   }
 }

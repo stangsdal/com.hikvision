@@ -191,6 +191,28 @@
             "getable": true,
             "setable": false,
 		    "icon": "assets/position.svg"
+        },
+        "alarm_state": {
+            "type": "string",
+            "title": {
+                "en": "Alarm State",
+                "nl": "Alarm Status",
+				"de": "Alarm Status"
+            },
+            "getable": true,
+            "setable": false,
+		    "icon": "assets/alarm.svg"
+        },
+        "last_alarm": {
+            "type": "string",
+            "title": {
+                "en": "Last Alarm",
+                "nl": "Laatste Alarm",
+				"de": "Letzter Alarm"
+            },
+            "getable": true,
+            "setable": false,
+		    "icon": "assets/history.svg"
         }
     },
     "flow": {
@@ -1054,6 +1076,109 @@
                     }
                 ]
             }
+        ],
+        "conditions": [
+            {
+                "id": "camera_is_online",
+                "title": {
+                    "en": "Camera is online",
+                    "nl": "Camera is online",
+                    "de": "Kamera ist online"
+                },
+                "titleFormatted": {
+                    "en": "Camera !{{is|is not}} online"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_motion_detected",
+                "title": {
+                    "en": "Motion is detected",
+                    "nl": "Beweging wordt gedetecteerd",
+                    "de": "Bewegung wird erkannt"
+                },
+                "titleFormatted": {
+                    "en": "Motion !{{is|is not}} detected"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_is_recording",
+                "title": {
+                    "en": "Camera is recording",
+                    "nl": "Camera neemt op",
+                    "de": "Kamera nimmt auf"
+                },
+                "titleFormatted": {
+                    "en": "Camera !{{is|is not}} recording"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_alarm_active",
+                "title": {
+                    "en": "Camera alarm is active",
+                    "nl": "Camera alarm is actief",
+                    "de": "Kamera Alarm ist aktiv"
+                },
+                "titleFormatted": {
+                    "en": "Camera alarm !{{is|is not}} active"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            },
+            {
+                "id": "camera_connection_strength",
+                "title": {
+                    "en": "Connection strength",
+                    "nl": "Verbindingssterkte",
+                    "de": "Verbindungsstärke"
+                },
+                "titleFormatted": {
+                    "en": "Connection strength !{{is stronger than|is weaker than}} [[strength]]%"
+                },
+                "args": [
+                    {
+                        "name": "strength",
+                        "type": "number",
+                        "min": 0,
+                        "max": 100,
+                        "placeholder": {
+                            "en": "Strength %",
+                            "nl": "Sterkte %",
+                            "de": "Stärke %"
+                        }
+                    },
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=hikvision-camera"
+                    }
+                ]
+            }
         ]
     },
     "drivers": [
@@ -1162,7 +1287,7 @@
         {
             "id": "hikvision-camera",
             "class": "sensor",
-            "capabilities": ["camera_status", "motion_detected", "recording_status", "stream_quality", "connection_strength", "ptz_position"],
+            "capabilities": ["camera_status", "motion_detected", "recording_status", "stream_quality", "connection_strength", "ptz_position", "alarm_state", "last_alarm"],
             "name": {
                 "en": "Hikvision Camera",
                 "nl": "Hikvision Camera",
@@ -1392,6 +1517,99 @@
                                     }
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "label": {
+                        "en": "Alarm Settings",
+                        "nl": "Alarm Instellingen",
+                        "de": "Alarm Einstellungen"
+                    },
+                    "children": [
+                        {
+                            "id": "enableAlarmForwarding",
+                            "type": "checkbox",
+                            "value": true,
+                            "label": {
+                                "en": "Enable Alarm Forwarding",
+                                "nl": "Alarm Doorsturen Inschakelen",
+                                "de": "Alarm Weiterleitung Aktivieren"
+                            },
+                            "hint": {
+                                "en": "Receive alarm events from NVR for this camera",
+                                "nl": "Ontvang alarm gebeurtenissen van NVR voor deze camera",
+                                "de": "Alarm-Ereignisse vom NVR für diese Kamera empfangen"
+                            }
+                        },
+                        {
+                            "id": "motionSensitivity",
+                            "type": "dropdown",
+                            "value": "medium",
+                            "label": {
+                                "en": "Motion Detection Sensitivity",
+                                "nl": "Bewegingsdetectie Gevoeligheid",
+                                "de": "Bewegungserkennung Empfindlichkeit"
+                            },
+                            "values": [
+                                {
+                                    "id": "low",
+                                    "label": {
+                                        "en": "Low",
+                                        "nl": "Laag",
+                                        "de": "Niedrig"
+                                    }
+                                },
+                                {
+                                    "id": "medium",
+                                    "label": {
+                                        "en": "Medium",
+                                        "nl": "Medium",
+                                        "de": "Mittel"
+                                    }
+                                },
+                                {
+                                    "id": "high",
+                                    "label": {
+                                        "en": "High",
+                                        "nl": "Hoog",
+                                        "de": "Hoch"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "autoSnapshot",
+                            "type": "checkbox",
+                            "value": true,
+                            "label": {
+                                "en": "Auto-Snapshot on Alarm",
+                                "nl": "Automatische Momentopname bij Alarm",
+                                "de": "Automatischer Schnappschuss bei Alarm"
+                            },
+                            "hint": {
+                                "en": "Automatically take snapshot when motion is detected",
+                                "nl": "Automatisch een momentopname maken wanneer beweging wordt gedetecteerd",
+                                "de": "Automatisch Schnappschuss machen wenn Bewegung erkannt wird"
+                            }
+                        },
+                        {
+                            "id": "alarmCooldown",
+                            "type": "number",
+                            "value": 5,
+                            "min": 1,
+                            "max": 60,
+                            "label": {
+                                "en": "Alarm Cooldown (seconds)",
+                                "nl": "Alarm Afkoelperiode (seconden)",
+                                "de": "Alarm Abkühlzeit (Sekunden)"
+                            },
+                            "hint": {
+                                "en": "Minimum time between alarm notifications",
+                                "nl": "Minimale tijd tussen alarm meldingen",
+                                "de": "Mindestzeit zwischen Alarm-Benachrichtigungen"
+                            }
                         }
                     ]
                 }

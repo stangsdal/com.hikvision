@@ -10,6 +10,7 @@ class HikvisionCameraDriver extends Homey.Driver {
 
   registerFlowCards(): void {
     // Flow cards will be registered when they are defined in app.json
+    // Condition cards will be handled in the app-level registration
   }
 
   registerActions(): void {

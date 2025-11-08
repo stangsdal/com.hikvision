@@ -65,6 +65,8 @@ class HikvisionCameraDevice extends Homey.Device {
     await this.setCapabilityValue('stream_quality', this.settings.streamQuality || 'high');
     await this.setCapabilityValue('connection_strength', 0);
     await this.setCapabilityValue('ptz_position', 'Unknown');
+    await this.setCapabilityValue('alarm_state', 'Idle');
+    await this.setCapabilityValue('last_alarm', 'None');
     
     // Setup streaming and monitoring
     await this.setupAdvancedStreaming();
@@ -433,25 +435,50 @@ class HikvisionCameraDevice extends Homey.Device {
   handleAlarmEvent(code: string, action: string): void {
     this.log(`Camera ${this.settings.channel} alarm: ${code} - ${action}`);
     
-    // Update motion detection capability
-    if (code === 'VideoMotion') {
-      const motionActive = action === 'Start';
-      this.setCapabilityValue('motion_detected', motionActive).catch(this.error);
-      
-      // Trigger camera-specific flow cards
-      const triggerCard = motionActive ? 'camera_motion_start' : 'camera_motion_stop';
-      this.homey.flow.getDeviceTriggerCard(triggerCard)
-        .trigger(this)
-        .catch(this.error);
-      
-      // Auto-capture snapshot on motion detection
-      if (motionActive) {
-        this.takeSnapshot().catch(this.error);
+    // Update alarm state based on alarm type and action
+    let alarmState = 'Idle';
+    const lastAlarm = code;
+    
+    if (action === 'Start') {
+      switch (code) {
+        case 'VideoMotion':
+          alarmState = 'Motion Detected';
+          this.setCapabilityValue('motion_detected', true).catch(this.error);
+          // Auto-capture snapshot on motion detection
+          this.takeSnapshot().catch(this.error);
+          break;
+        case 'AlarmLocal':
+          alarmState = 'Local Alarm';
+          break;
+        case 'VideoLoss':
+          alarmState = 'Video Loss';
+          break;
+        case 'VideoBlind':
+          alarmState = 'Video Blind';
+          break;
+        case 'LineDetection':
+          alarmState = 'Line Detection';
+          break;
+        case 'IntrusionDetection':
+          alarmState = 'Intrusion Detection';
+          break;
+        default:
+          alarmState = 'Unknown Alarm';
+      }
+    } else if (action === 'Stop') {
+      alarmState = 'Idle';
+      if (code === 'VideoMotion') {
+        this.setCapabilityValue('motion_detected', false).catch(this.error);
       }
     }
+    
+    // Update alarm capabilities
+    this.setCapabilityValue('alarm_state', alarmState).catch(this.error);
+    this.setCapabilityValue('last_alarm', lastAlarm).catch(this.error);
 
-    // Handle other alarm types with enhanced logging
+    // Trigger camera-specific flow cards based on alarm type
     const alarmHandlers: Record<string, string> = {
+      'VideoMotion': action === 'Start' ? 'camera_motion_start' : 'camera_motion_stop',
       'VideoLoss': action === 'Start' ? 'camera_video_loss_start' : 'camera_video_loss_stop',
       'VideoBlind': action === 'Start' ? 'camera_video_blind_start' : 'camera_video_blind_stop',
       'LineDetection': action === 'Start' ? 'camera_line_detection_start' : 'camera_line_detection_stop',
@@ -463,6 +490,13 @@ class HikvisionCameraDevice extends Homey.Device {
     if (triggerCard) {
       this.homey.flow.getDeviceTriggerCard(triggerCard)
         .trigger(this)
+        .catch(this.error);
+    }
+    
+    // Trigger general alarm flow card
+    if (action === 'Start') {
+      this.homey.flow.getDeviceTriggerCard('camera_alarm_triggered')
+        .trigger(this, { alarm_type: code })
         .catch(this.error);
     }
   }
@@ -645,6 +679,8 @@ class HikvisionCameraDevice extends Homey.Device {
       return false;
     }
   }
+
+
 
   // Method to get current streaming statistics
   getStreamingStats(): any {
