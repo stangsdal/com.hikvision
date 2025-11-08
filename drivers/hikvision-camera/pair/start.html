@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Camera</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b8daff;
+            color: #004085;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Add Hikvision Camera</h2>
+        
+        <div class="info">
+            <strong>Note:</strong> This is Phase 1 implementation. Manual camera addition will be enhanced with automatic discovery in future phases.
+        </div>
+        
+        <div class="step">
+            <h3>Step 1: Ensure NVR Connection</h3>
+            <p>Make sure you have already added and configured your Hikvision NVR device. The camera will connect through the existing NVR connection.</p>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Manual Camera Addition</h3>
+            <p>For now, cameras need to be added manually. In Phase 1, the basic camera structure is being established.</p>
+            <p>Future phases will include:</p>
+            <ul>
+                <li>Automatic camera discovery through NVR</li>
+                <li>Camera selection interface</li>
+                <li>Live camera preview during pairing</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>Phase 1 Status</h3>
+            <p>✅ Camera driver structure created<br>
+            ✅ Basic capabilities defined<br>
+            ✅ Flow cards added<br>
+            🔄 Discovery system (Phase 2)<br>
+            🔄 Live streaming (Phase 2)<br>
+            🔄 Advanced features (Phase 3-6)</p>
+        </div>
+    </div>
+</body>
+</html>
