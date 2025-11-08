@@ -9,10 +9,18 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "lint:check": "npm run lint || echo 'Lint completed with warnings'",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:hikvision": "ts-node tests/device-test-framework.ts",
+    "test:performance": "ts-node tests/run-tests.ts",
     "homey:build": "homey app build",
     "homey:install": "homey app install",
-    "homey:run": "homey app run"
+    "homey:run": "homey app run",
+    "deploy:production": "bash scripts/deploy-production.sh",
+    "deploy:production:windows": "powershell -ExecutionPolicy Bypass -File scripts/deploy-production.ps1",
+    "deploy:test": "npm run deploy:production:windows -SkipTests",
+    "validate": "npm run lint && npm run build && npm run test"
   },
   "keywords": [
     "homey",
@@ -30,13 +38,17 @@
   "devDependencies": {
     "@eslint/js": "^9.38.0",
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.9.1",
     "@types/request": "^2.48.13",
     "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.38.0",
+    "jest": "^30.2.0",
     "rimraf": "^6.0.1",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "engines": {

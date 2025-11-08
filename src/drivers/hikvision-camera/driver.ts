@@ -135,6 +135,26 @@ class HikvisionCameraDriver extends Homey.Driver {
         }
         return false;
       });
+
+    // Switch streaming profile
+    this.homey.flow
+      .getActionCard('camera_switch_stream_profile')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.switchToProfile(args.profile_id);
+        }
+        return false;
+      });
+
+    // Enable/disable adaptive streaming
+    this.homey.flow
+      .getActionCard('camera_set_adaptive_streaming')
+      .registerRunListener(async (args) => {
+        if (args.device) {
+          return args.device.setAdaptiveStreaming(args.enabled);
+        }
+        return false;
+      });
   }
 
   override async onPair(session: Homey.PairSession): Promise<void> {
@@ -160,11 +180,11 @@ class HikvisionCameraDriver extends Homey.Driver {
   private async discoverCameras(): Promise<object[]> {
     try {
       this.log('Auto-discovery: Preparing camera list for pairing...');
-      
+
       // For Phase 4, provide pre-configured camera options that users can select
       // This simulates discovery and allows users to easily add cameras
       const cameraOptions: object[] = [];
-      
+
       // Generate camera options for channels 1-16 (common NVR setup)
       for (let channel = 1; channel <= 16; channel++) {
         cameraOptions.push({
@@ -176,12 +196,12 @@ class HikvisionCameraDriver extends Homey.Driver {
             channel: channel,
             name: `Camera ${channel}`,
             nvrDeviceId: 'auto-configured', // Will be set during pairing
-            nvrAddress: '192.168.1.100', // Default - user can modify
+            nvrAddress: '192.168.10.140', // Updated default to match your NVR
             nvrPort: 80,
             nvrSsl: false,
             nvrStrict: false,
             nvrUsername: 'admin',
-            nvrPassword: 'admin',
+            nvrPassword: 'ZmartGold2018',
             streamQuality: 'high',
             streamResolution: '1920x1080',
             refreshRate: 5,
@@ -198,7 +218,7 @@ class HikvisionCameraDriver extends Homey.Driver {
 
       this.log(`Auto-discovery: Generated ${cameraOptions.length} camera options for user selection`);
       return cameraOptions;
-      
+
     } catch {
       this.log('Error during camera auto-discovery');
       return [];

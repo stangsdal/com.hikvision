@@ -95,7 +95,40 @@ export class HikvisionApi extends EventEmitter {
 
     // Handle alarms
     private handleData(self: HikvisionApi, data: Buffer): void {
-        parser.parseString(data.toString(), (err: any, result: any) => {
+        const dataStr = data.toString();
+        
+        // Extract XML content from multipart stream
+        // Hikvision sends multipart data with HTTP headers, boundaries, and other content
+        // We need to find and extract only the clean XML part
+        
+        let xmlContent: string;
+        
+        // Look for XML declaration and complete EventNotificationAlert
+        const xmlMatch = dataStr.match(/<\?xml[\s\S]*?<\/EventNotificationAlert>/);
+        if (!xmlMatch) {
+            // Also try to find just EventNotificationAlert without XML declaration
+            const alertMatch = dataStr.match(/<EventNotificationAlert[\s\S]*?<\/EventNotificationAlert>/);
+            if (!alertMatch) {
+                // No valid XML found, this is likely HTTP headers, boundaries, or other data
+                return;
+            }
+            // Add XML declaration if missing
+            xmlContent = '<?xml version="1.0" encoding="UTF-8"?>' + alertMatch[0];
+        } else {
+            xmlContent = xmlMatch[0];
+        }
+        
+        // Clean up any potential issues that might break XML parsing
+        const cleanXmlContent = xmlContent.trim();
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        parser.parseString(cleanXmlContent, (err: Error | null, result: any) => {
+            if (err) {
+                // Log XML parsing errors but don't crash
+                console.log('XML parsing error (ignoring):', err.message);
+                return;
+            }
+            
             if (result && result['EventNotificationAlert'] !== undefined) {
                 let code = result['EventNotificationAlert']['eventType'][0];
                 let action = result['EventNotificationAlert']['eventState'][0];

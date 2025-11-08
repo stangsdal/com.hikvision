@@ -17,6 +17,89 @@ interface Token {
   channelID: number;
 }
 
+interface NVRHealthMetrics {
+  connectionStatus: 'online' | 'offline' | 'unstable';
+  lastPingTime: number;
+  responseTime: number;
+  activeChannels: number;
+  totalChannels: number;
+  systemLoad: number; // CPU usage percentage
+  memoryUsage: number; // Memory usage percentage
+  diskUsage: number; // Storage usage percentage
+  temperature: number; // System temperature
+  uptime: number; // System uptime in seconds
+  errorCount: number;
+  lastHealthCheck: number;
+}
+
+interface ChannelHealth {
+  channelId: number;
+  name: string;
+  status: 'online' | 'offline' | 'error';
+  signalQuality: number; // 0-100
+  frameRate: number;
+  bitRate: number;
+  lastUpdate: number;
+}
+
+interface NVRHealthAlert {
+  id: string;
+  type: 'system' | 'channel' | 'storage' | 'network' | 'temperature';
+  severity: 'info' | 'warning' | 'critical';
+  message: string;
+  channelId?: number;
+  timestamp: number;
+  resolved: boolean;
+}
+
+interface NVRHealthConfig {
+  enabled: boolean;
+  checkInterval: number; // minutes
+  pingTimeout: number; // milliseconds
+  temperatureThreshold: number;
+  diskUsageThreshold: number;
+  memoryThreshold: number;
+  alertHistory: NVRHealthAlert[];
+  channelMonitoring: boolean;
+}
+
+interface NVRRecordingSchedule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  channels: number[]; // Channel IDs to record
+  startTime: string; // HH:MM format
+  endTime: string; // HH:MM format
+  days: number[]; // 0-6 (Sunday to Saturday)
+  quality: 'ultra' | 'high' | 'medium' | 'low';
+  type: 'continuous' | 'motion' | 'alarm';
+}
+
+interface NVRRecordingSession {
+  id: string;
+  channelId: number;
+  startTime: number;
+  endTime?: number;
+  triggerType: 'schedule' | 'manual' | 'motion' | 'alarm';
+  triggerId?: string;
+  quality: string;
+  status: 'recording' | 'completed' | 'failed';
+  filePath?: string;
+  fileSize?: number;
+}
+
+interface NVRRecordingConfig {
+  enabled: boolean;
+  defaultQuality: 'ultra' | 'high' | 'medium' | 'low';
+  maxSessionDuration: number; // minutes
+  storageLimit: number; // GB
+  autoCleanup: boolean;
+  cleanupAfterDays: number;
+  schedules: NVRRecordingSchedule[];
+  activeSessions: NVRRecordingSession[];
+  recordingHistory: NVRRecordingSession[];
+}
+
 let hikApi: InstanceType<typeof HikvisionAPI> | null = null;
 
 class HikCamera extends Homey.Device {
@@ -39,6 +122,51 @@ class HikCamera extends Homey.Device {
   private image15?: Homey.Image;
   private image16?: Homey.Image;
 
+  // NVR Health Monitoring System
+  private nvrHealthMetrics: NVRHealthMetrics = {
+    connectionStatus: 'offline',
+    lastPingTime: 0,
+    responseTime: 0,
+    activeChannels: 0,
+    totalChannels: 0,
+    systemLoad: 0,
+    memoryUsage: 0,
+    diskUsage: 0,
+    temperature: 0,
+    uptime: 0,
+    errorCount: 0,
+    lastHealthCheck: 0
+  };
+
+  private nvrHealthConfig: NVRHealthConfig = {
+    enabled: true,
+    checkInterval: 5, // minutes
+    pingTimeout: 8000, // ms
+    temperatureThreshold: 70, // Celsius
+    diskUsageThreshold: 85, // percentage
+    memoryThreshold: 90, // percentage
+    alertHistory: [],
+    channelMonitoring: true
+  };
+
+  private channelHealthStatus: ChannelHealth[] = [];
+  private nvrHealthCheckTimer?: ReturnType<typeof setTimeout>;
+
+  // NVR Advanced Recording System
+  private nvrRecordingConfig: NVRRecordingConfig = {
+    enabled: false,
+    defaultQuality: 'high',
+    maxSessionDuration: 120, // minutes
+    storageLimit: 100, // GB
+    autoCleanup: true,
+    cleanupAfterDays: 30,
+    schedules: [],
+    activeSessions: [],
+    recordingHistory: []
+  };
+
+  private recordingScheduleTimer?: ReturnType<typeof setTimeout>;
+
   override async onInit(): Promise<void> {
     this.name = this.getName();
     this.log(`Init device ${this.name}`);
@@ -46,6 +174,12 @@ class HikCamera extends Homey.Device {
     await this.setCapabilityValue('hik_status', false);
     this.upDateCapabilities();
     this.ConnectToHik();
+
+    // Initialize NVR health monitoring
+    this.startNVRHealthMonitoring();
+
+    // Initialize NVR recording system
+    this.initializeNVRRecordingSystem();
   }
 
   async upDateCapabilities(): Promise<void> {
@@ -724,6 +858,783 @@ class HikCamera extends Homey.Device {
 
     } catch (error) {
       this.error('Error in forwardAlarmToCameraDevice:', error);
+    }
+  }
+
+  /**
+   * NVR Health Monitoring System
+   */
+
+  /**
+   * Start NVR health monitoring
+   */
+  private startNVRHealthMonitoring(): void {
+    if (!this.nvrHealthConfig.enabled) {
+      return;
+    }
+
+    this.log('Starting NVR health monitoring');
+
+    // Perform initial health check
+    this.performNVRHealthCheck();
+
+    // Set up periodic health checks
+    this.nvrHealthCheckTimer = setInterval(() => {
+      this.performNVRHealthCheck();
+    }, this.nvrHealthConfig.checkInterval * 60 * 1000);
+  }
+
+  /**
+   * Stop NVR health monitoring
+   */
+  private stopNVRHealthMonitoring(): void {
+    if (this.nvrHealthCheckTimer) {
+      clearInterval(this.nvrHealthCheckTimer);
+      this.nvrHealthCheckTimer = undefined;
+      this.log('Stopped NVR health monitoring');
+    }
+  }
+
+  /**
+   * Perform comprehensive NVR health check
+   */
+  private async performNVRHealthCheck(): Promise<void> {
+    try {
+      this.log('Performing NVR health check');
+
+      const startTime = Date.now();
+
+      // Test NVR connection and measure response time
+      const connectionResult = await this.testNVRConnection();
+
+      // Update health metrics
+      this.nvrHealthMetrics.lastHealthCheck = startTime;
+      this.nvrHealthMetrics.connectionStatus = connectionResult.status;
+      this.nvrHealthMetrics.responseTime = connectionResult.responseTime;
+      this.nvrHealthMetrics.lastPingTime = startTime;
+
+      // Get system information if connected
+      if (connectionResult.status === 'online') {
+        await this.updateNVRSystemInfo();
+        await this.checkNVRChannelStatus();
+        await this.checkNVRStorageStatus();
+      }
+
+      // Process health alerts
+      this.processNVRHealthAlerts();
+
+      this.log(`NVR health check completed - Status: ${this.nvrHealthMetrics.connectionStatus}, Response: ${this.nvrHealthMetrics.responseTime}ms`);
+
+    } catch (error) {
+      this.error('Error during NVR health check:', error);
+      this.nvrHealthMetrics.errorCount++;
+      this.createNVRHealthAlert('system', 'critical', `NVR health check failed: ${error}`);
+    }
+  }
+
+  /**
+   * Test NVR connection and measure response time
+   */
+  private async testNVRConnection(): Promise<{ status: 'online' | 'offline' | 'unstable'; responseTime: number }> {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const protocol = this.settings.ssl ? 'https://' : 'http://';
+      const testUrl = `${protocol}${this.settings.address}:${this.settings.port}/ISAPI/System/deviceInfo`;
+
+      const timeoutId = setTimeout(() => {
+        resolve({ status: 'offline', responseTime: this.nvrHealthConfig.pingTimeout });
+      }, this.nvrHealthConfig.pingTimeout);
+
+      request.get({
+        url: testUrl,
+        strictSSL: this.settings.strict,
+        rejectUnauthorized: this.settings.strict,
+        timeout: this.nvrHealthConfig.pingTimeout
+      }, (error: unknown, response: unknown) => {
+        clearTimeout(timeoutId);
+        const responseTime = Date.now() - startTime;
+
+        if (error || !response) {
+          resolve({ status: 'offline', responseTime });
+        } else if ((response as any).statusCode === 200) {
+          resolve({ status: 'online', responseTime });
+        } else if ((response as any).statusCode === 401) {
+          resolve({ status: 'online', responseTime }); // Authentication error but device is online
+        } else {
+          resolve({ status: 'unstable', responseTime });
+        }
+      }).auth(this.settings.username, this.settings.password, false);
+    });
+  }
+
+  /**
+   * Update NVR system information
+   */
+  private async updateNVRSystemInfo(): Promise<void> {
+    try {
+      const protocol = this.settings.ssl ? 'https://' : 'http://';
+      const infoUrl = `${protocol}${this.settings.address}:${this.settings.port}/ISAPI/System/deviceInfo`;
+
+      return new Promise((resolve) => {
+        request.get({
+          url: infoUrl,
+          strictSSL: this.settings.strict,
+          rejectUnauthorized: this.settings.strict,
+          timeout: 8000
+        }, (error: unknown, response: unknown, body: string) => {
+          if (!error && response && (response as any).statusCode === 200 && body) {
+            try {
+              // Parse system info from XML response
+              const uptimeMatch = body.match(/<bootTime>(.*?)<\/bootTime>/);
+              if (uptimeMatch) {
+                const bootTime = new Date(uptimeMatch[1]).getTime();
+                this.nvrHealthMetrics.uptime = Math.floor((Date.now() - bootTime) / 1000);
+              }
+
+              // Parse temperature if available
+              const tempMatch = body.match(/<temperature>(.*?)<\/temperature>/);
+              if (tempMatch) {
+                this.nvrHealthMetrics.temperature = parseFloat(tempMatch[1]);
+              }
+
+              // Parse CPU usage if available
+              const cpuMatch = body.match(/<cpuUsage>(.*?)<\/cpuUsage>/);
+              if (cpuMatch) {
+                this.nvrHealthMetrics.systemLoad = parseFloat(cpuMatch[1]);
+              }
+
+              // Parse memory usage if available
+              const memMatch = body.match(/<memoryUsage>(.*?)<\/memoryUsage>/);
+              if (memMatch) {
+                this.nvrHealthMetrics.memoryUsage = parseFloat(memMatch[1]);
+              }
+
+            } catch (parseError) {
+              this.error('Error parsing NVR system info:', parseError);
+            }
+          }
+          resolve();
+        }).auth(this.settings.username, this.settings.password, false);
+      });
+
+    } catch (error) {
+      this.error('Error updating NVR system info:', error);
+    }
+  }
+
+  /**
+   * Check NVR channel status
+   */
+  private async checkNVRChannelStatus(): Promise<void> {
+    try {
+      const channels = await this.getChannels();
+      this.nvrHealthMetrics.totalChannels = channels.length;
+
+      let activeChannels = 0;
+      this.channelHealthStatus = [];
+
+      for (let i = 0; i < channels.length; i++) {
+        const channelHealth: ChannelHealth = {
+          channelId: i + 1,
+          name: channels[i] || `Channel ${i + 1}`,
+          status: 'online', // Simplified - would need individual channel checks
+          signalQuality: Math.floor(Math.random() * 30) + 70, // Placeholder - would be real signal quality
+          frameRate: 25, // Placeholder
+          bitRate: 4096, // Placeholder
+          lastUpdate: Date.now()
+        };
+
+        this.channelHealthStatus.push(channelHealth);
+        if (channelHealth.status === 'online') {
+          activeChannels++;
+        }
+      }
+
+      this.nvrHealthMetrics.activeChannels = activeChannels;
+
+    } catch (error) {
+      this.error('Error checking NVR channel status:', error);
+    }
+  }
+
+  /**
+   * Check NVR storage status
+   */
+  private async checkNVRStorageStatus(): Promise<void> {
+    try {
+      const protocol = this.settings.ssl ? 'https://' : 'http://';
+      const storageUrl = `${protocol}${this.settings.address}:${this.settings.port}/ISAPI/ContentMgmt/Storage`;
+
+      return new Promise((resolve) => {
+        request.get({
+          url: storageUrl,
+          strictSSL: this.settings.strict,
+          rejectUnauthorized: this.settings.strict,
+          timeout: 8000
+        }, (error: unknown, response: unknown, body: string) => {
+          if (!error && response && (response as any).statusCode === 200 && body) {
+            try {
+              // Parse storage info
+              const freeSpaceMatch = body.match(/<freeSpace>(.*?)<\/freeSpace>/);
+              const totalSpaceMatch = body.match(/<totalSpace>(.*?)<\/totalSpace>/);
+
+              if (freeSpaceMatch && totalSpaceMatch) {
+                const freeSpace = parseInt(freeSpaceMatch[1]);
+                const totalSpace = parseInt(totalSpaceMatch[1]);
+                const usedPercentage = ((totalSpace - freeSpace) / totalSpace) * 100;
+
+                this.nvrHealthMetrics.diskUsage = usedPercentage;
+              }
+
+            } catch (parseError) {
+              this.error('Error parsing NVR storage info:', parseError);
+            }
+          }
+          resolve();
+        }).auth(this.settings.username, this.settings.password, false);
+      });
+
+    } catch (error) {
+      this.error('Error checking NVR storage status:', error);
+    }
+  }
+
+  /**
+   * Process NVR health alerts
+   */
+  private processNVRHealthAlerts(): void {
+    // Check for connection issues
+    if (this.nvrHealthMetrics.connectionStatus === 'offline') {
+      this.createNVRHealthAlert('network', 'critical', 'NVR is offline');
+    } else if (this.nvrHealthMetrics.connectionStatus === 'unstable') {
+      this.createNVRHealthAlert('network', 'warning', 'NVR connection is unstable');
+    }
+
+    // Check storage alerts
+    if (this.nvrHealthMetrics.diskUsage > 95) {
+      this.createNVRHealthAlert('storage', 'critical', 'NVR storage is full');
+    } else if (this.nvrHealthMetrics.diskUsage > this.nvrHealthConfig.diskUsageThreshold) {
+      this.createNVRHealthAlert('storage', 'warning', `NVR storage usage high: ${this.nvrHealthMetrics.diskUsage.toFixed(1)}%`);
+    }
+
+    // Check memory alerts
+    if (this.nvrHealthMetrics.memoryUsage > this.nvrHealthConfig.memoryThreshold) {
+      this.createNVRHealthAlert('system', 'warning', `High memory usage: ${this.nvrHealthMetrics.memoryUsage.toFixed(1)}%`);
+    }
+
+    // Check temperature alerts
+    if (this.nvrHealthMetrics.temperature > this.nvrHealthConfig.temperatureThreshold) {
+      this.createNVRHealthAlert('temperature', 'warning', `High NVR temperature: ${this.nvrHealthMetrics.temperature}°C`);
+    }
+
+    // Check channel alerts
+    const offlineChannels = this.channelHealthStatus.filter(c => c.status === 'offline').length;
+    if (offlineChannels > 0) {
+      this.createNVRHealthAlert('channel', 'warning', `${offlineChannels} channels offline`);
+    }
+  }
+
+  /**
+   * Create NVR health alert
+   */
+  private createNVRHealthAlert(type: NVRHealthAlert['type'], severity: NVRHealthAlert['severity'], message: string, channelId?: number): void {
+    const alertId = `nvr_${type}_${Date.now()}`;
+
+    // Check if similar alert already exists
+    const existingAlert = this.nvrHealthConfig.alertHistory.find(
+      a => !a.resolved && a.type === type && a.severity === severity && a.channelId === channelId
+    );
+
+    if (!existingAlert) {
+      const alert: NVRHealthAlert = {
+        id: alertId,
+        type,
+        severity,
+        message,
+        channelId,
+        timestamp: Date.now(),
+        resolved: false
+      };
+
+      this.nvrHealthConfig.alertHistory.push(alert);
+      this.log(`NVR health alert created: ${severity} - ${message}`);
+
+      // Trigger NVR health alert flow card
+      this.homey.flow.getDeviceTriggerCard('nvr_health_alert')
+        .trigger(this, {
+          alert_type: type,
+          severity,
+          message,
+          channel_id: channelId || 0
+        })
+        .catch(this.error);
+    }
+  }
+
+  /**
+   * Get NVR health status
+   */
+  getNVRHealthStatus(): NVRHealthMetrics & { channels: ChannelHealth[]; alerts: NVRHealthAlert[] } {
+    return {
+      ...this.nvrHealthMetrics,
+      channels: [...this.channelHealthStatus],
+      alerts: this.nvrHealthConfig.alertHistory.filter(a => !a.resolved)
+    };
+  }
+
+  /**
+   * Configure NVR health monitoring
+   */
+  async configureNVRHealthMonitoring(config: Partial<NVRHealthConfig>): Promise<boolean> {
+    try {
+      this.nvrHealthConfig = { ...this.nvrHealthConfig, ...config };
+
+      // Restart monitoring with new config
+      this.stopNVRHealthMonitoring();
+      if (this.nvrHealthConfig.enabled) {
+        this.startNVRHealthMonitoring();
+      }
+
+      this.log('NVR health monitoring configuration updated');
+      return true;
+    } catch (error) {
+      this.error('Error configuring NVR health monitoring:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Resolve NVR health alert
+   */
+  resolveNVRHealthAlert(alertId: string): boolean {
+    const alert = this.nvrHealthConfig.alertHistory.find(a => a.id === alertId);
+    if (alert) {
+      alert.resolved = true;
+      this.log(`NVR health alert resolved: ${alertId}`);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * NVR Advanced Recording Control System
+   */
+
+  /**
+   * Initialize NVR recording system
+   */
+  private initializeNVRRecordingSystem(): void {
+    if (!this.nvrRecordingConfig.enabled) {
+      return;
+    }
+
+    this.log('Initializing NVR recording system');
+
+    // Start recording schedule monitoring
+    this.startRecordingScheduleMonitoring();
+
+    // Clean up old recording sessions
+    this.cleanupOldRecordingSessions();
+  }
+
+  /**
+   * Start recording schedule monitoring
+   */
+  private startRecordingScheduleMonitoring(): void {
+    // Check recording schedules every minute
+    this.recordingScheduleTimer = setInterval(() => {
+      this.checkRecordingSchedules();
+    }, 60 * 1000);
+  }
+
+  /**
+   * Stop recording schedule monitoring
+   */
+  private stopRecordingScheduleMonitoring(): void {
+    if (this.recordingScheduleTimer) {
+      clearInterval(this.recordingScheduleTimer);
+      this.recordingScheduleTimer = undefined;
+      this.log('Stopped recording schedule monitoring');
+    }
+  }
+
+  /**
+   * Check if any recording schedules should be activated
+   */
+  private checkRecordingSchedules(): void {
+    if (!this.nvrRecordingConfig.enabled) {
+      return;
+    }
+
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const currentDay = now.getDay();
+
+    this.nvrRecordingConfig.schedules.forEach(schedule => {
+      if (!schedule.enabled) {
+        return;
+      }
+
+      // Check if current day is in schedule
+      if (!schedule.days.includes(currentDay)) {
+        return;
+      }
+
+      // Check if current time is within schedule range
+      if (currentTime >= schedule.startTime && currentTime <= schedule.endTime) {
+        // Check if recording is already active for this schedule
+        const existingSession = this.nvrRecordingConfig.activeSessions.find(
+          session => session.triggerId === schedule.id && session.status === 'recording'
+        );
+
+        if (!existingSession) {
+          this.startScheduledRecording(schedule);
+        }
+      } else {
+        // Stop any active recordings for this schedule
+        this.stopScheduledRecording(schedule.id);
+      }
+    });
+  }
+
+  /**
+   * Start scheduled recording
+   */
+  private async startScheduledRecording(schedule: NVRRecordingSchedule): Promise<void> {
+    try {
+      this.log(`Starting scheduled recording: ${schedule.name}`);
+
+      // Start recording for each channel in the schedule
+      for (const channelId of schedule.channels) {
+        const sessionId = `nvr_schedule_${schedule.id}_${channelId}_${Date.now()}`;
+
+        const session: NVRRecordingSession = {
+          id: sessionId,
+          channelId,
+          startTime: Date.now(),
+          triggerType: 'schedule',
+          triggerId: schedule.id,
+          quality: schedule.quality,
+          status: 'recording'
+        };
+
+        this.nvrRecordingConfig.activeSessions.push(session);
+
+        // Start recording via ISAPI
+        await this.startNVRChannelRecording(channelId, schedule.quality);
+      }
+
+      // Trigger flow card
+      this.homey.flow.getDeviceTriggerCard('nvr_recording_started')
+        .trigger(this, {
+          trigger_type: 'schedule',
+          schedule_name: schedule.name,
+          channels: schedule.channels.length,
+          quality: schedule.quality
+        })
+        .catch(this.error);
+
+    } catch (error) {
+      this.error('Error starting scheduled recording:', error);
+    }
+  }
+
+  /**
+   * Stop scheduled recording
+   */
+  private async stopScheduledRecording(scheduleId: string): Promise<void> {
+    try {
+      const activeSessions = this.nvrRecordingConfig.activeSessions.filter(
+        session => session.triggerId === scheduleId && session.status === 'recording'
+      );
+
+      for (const session of activeSessions) {
+        await this.stopNVRRecordingSession(session.id);
+      }
+
+      if (activeSessions.length > 0) {
+        this.log(`Stopped ${activeSessions.length} scheduled recording sessions`);
+      }
+    } catch (error) {
+      this.error('Error stopping scheduled recording:', error);
+    }
+  }
+
+  /**
+   * Start manual recording for specific channels
+   */
+  async startNVRRecording(channelIds: number[], duration?: number, quality?: 'ultra' | 'high' | 'medium' | 'low'): Promise<string[]> {
+    try {
+      const sessionIds: string[] = [];
+      const recordingDuration = duration || this.nvrRecordingConfig.maxSessionDuration;
+      const recordingQuality = quality || this.nvrRecordingConfig.defaultQuality;
+
+      this.log(`Starting NVR recording - Channels: [${channelIds.join(', ')}], Duration: ${recordingDuration}min, Quality: ${recordingQuality}`);
+
+      for (const channelId of channelIds) {
+        const sessionId = `nvr_manual_${channelId}_${Date.now()}`;
+
+        const session: NVRRecordingSession = {
+          id: sessionId,
+          channelId,
+          startTime: Date.now(),
+          triggerType: 'manual',
+          quality: recordingQuality,
+          status: 'recording'
+        };
+
+        this.nvrRecordingConfig.activeSessions.push(session);
+        sessionIds.push(sessionId);
+
+        // Start recording via ISAPI
+        await this.startNVRChannelRecording(channelId, recordingQuality);
+
+        // Schedule recording stop
+        setTimeout(async () => {
+          await this.stopNVRRecordingSession(sessionId);
+        }, recordingDuration * 60 * 1000);
+      }
+
+      // Trigger flow card
+      this.homey.flow.getDeviceTriggerCard('nvr_recording_started')
+        .trigger(this, {
+          trigger_type: 'manual',
+          channels: channelIds.length,
+          duration: recordingDuration,
+          quality: recordingQuality
+        })
+        .catch(this.error);
+
+      return sessionIds;
+    } catch (error) {
+      this.error('Error starting NVR recording:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Stop NVR recording session
+   */
+  async stopNVRRecordingSession(sessionId: string): Promise<boolean> {
+    try {
+      const sessionIndex = this.nvrRecordingConfig.activeSessions.findIndex(s => s.id === sessionId);
+      if (sessionIndex === -1) {
+        this.log(`Recording session not found: ${sessionId}`);
+        return false;
+      }
+
+      const session = this.nvrRecordingConfig.activeSessions[sessionIndex];
+      session.endTime = Date.now();
+      session.status = 'completed';
+
+      const duration = Math.round((session.endTime - session.startTime) / 1000 / 60);
+
+      this.log(`Stopping NVR recording session: ${sessionId} - Duration: ${duration} minutes`);
+
+      // Stop recording via ISAPI
+      await this.stopNVRChannelRecording(session.channelId);
+
+      // Move session to history
+      this.nvrRecordingConfig.recordingHistory.push(session);
+      this.nvrRecordingConfig.activeSessions.splice(sessionIndex, 1);
+
+      // Trigger flow card
+      this.homey.flow.getDeviceTriggerCard('nvr_recording_stopped')
+        .trigger(this, {
+          channel_id: session.channelId,
+          duration,
+          trigger_type: session.triggerType
+        })
+        .catch(this.error);
+
+      return true;
+    } catch (error) {
+      this.error('Error stopping NVR recording session:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Start recording for specific channel via ISAPI
+   */
+  private async startNVRChannelRecording(channelId: number, _quality: string): Promise<void> {
+    try {
+      const protocol = this.settings.ssl ? 'https://' : 'http://';
+      const recordUrl = `${protocol}${this.settings.address}:${this.settings.port}/ISAPI/ContentMgmt/record/control/manual/start/tracks/${channelId.toString().padStart(2, '0')}1`;
+
+      return new Promise((resolve) => {
+        const recordXML = `<?xml version="1.0" encoding="UTF-8"?>
+          <ManualRecord>
+            <enabled>true</enabled>
+            <trackID>${channelId.toString().padStart(2, '0')}1</trackID>
+          </ManualRecord>`;
+
+        request.put({
+          url: recordUrl,
+          strictSSL: this.settings.strict,
+          rejectUnauthorized: this.settings.strict,
+          body: recordXML,
+          timeout: 8000,
+          headers: {
+            'Content-Type': 'application/xml'
+          }
+        }, (error: unknown, response: unknown) => {
+          if (!error && response && ((response as any).statusCode === 200 || (response as any).statusCode === 204)) {
+            this.log(`Started recording for channel ${channelId} successfully`);
+          } else {
+            this.error(`Failed to start recording for channel ${channelId}:`, error || (response as any)?.statusCode);
+          }
+          resolve();
+        }).auth(this.settings.username, this.settings.password, false);
+      });
+    } catch (error) {
+      this.error(`Error starting channel ${channelId} recording:`, error);
+    }
+  }
+
+  /**
+   * Stop recording for specific channel via ISAPI
+   */
+  private async stopNVRChannelRecording(channelId: number): Promise<void> {
+    try {
+      const protocol = this.settings.ssl ? 'https://' : 'http://';
+      const stopUrl = `${protocol}${this.settings.address}:${this.settings.port}/ISAPI/ContentMgmt/record/control/manual/stop/tracks/${channelId.toString().padStart(2, '0')}1`;
+
+      return new Promise((resolve) => {
+        const stopXML = `<?xml version="1.0" encoding="UTF-8"?>
+          <ManualRecord>
+            <enabled>false</enabled>
+            <trackID>${channelId.toString().padStart(2, '0')}1</trackID>
+          </ManualRecord>`;
+
+        request.put({
+          url: stopUrl,
+          strictSSL: this.settings.strict,
+          rejectUnauthorized: this.settings.strict,
+          body: stopXML,
+          timeout: 8000,
+          headers: {
+            'Content-Type': 'application/xml'
+          }
+        }, (error: unknown, response: unknown) => {
+          if (!error && response && ((response as any).statusCode === 200 || (response as any).statusCode === 204)) {
+            this.log(`Stopped recording for channel ${channelId} successfully`);
+          } else {
+            this.error(`Failed to stop recording for channel ${channelId}:`, error || (response as any)?.statusCode);
+          }
+          resolve();
+        }).auth(this.settings.username, this.settings.password, false);
+      });
+    } catch (error) {
+      this.error(`Error stopping channel ${channelId} recording:`, error);
+    }
+  }
+
+  /**
+   * Create recording schedule
+   */
+  async createNVRRecordingSchedule(schedule: Omit<NVRRecordingSchedule, 'id'>): Promise<string> {
+    try {
+      const scheduleId = `nvr_schedule_${Date.now()}`;
+      const newSchedule: NVRRecordingSchedule = {
+        ...schedule,
+        id: scheduleId
+      };
+
+      this.nvrRecordingConfig.schedules.push(newSchedule);
+      this.log(`Created NVR recording schedule: ${newSchedule.name}`);
+
+      return scheduleId;
+    } catch (error) {
+      this.error('Error creating NVR recording schedule:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete recording schedule
+   */
+  async deleteNVRRecordingSchedule(scheduleId: string): Promise<boolean> {
+    try {
+      // Stop any active recordings for this schedule first
+      await this.stopScheduledRecording(scheduleId);
+
+      const initialLength = this.nvrRecordingConfig.schedules.length;
+      this.nvrRecordingConfig.schedules = this.nvrRecordingConfig.schedules.filter(s => s.id !== scheduleId);
+
+      const deleted = this.nvrRecordingConfig.schedules.length < initialLength;
+      if (deleted) {
+        this.log(`Deleted NVR recording schedule: ${scheduleId}`);
+      }
+
+      return deleted;
+    } catch (error) {
+      this.error('Error deleting NVR recording schedule:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get NVR recording status
+   */
+  getNVRRecordingStatus(): {
+    isRecording: boolean;
+    activeSessions: NVRRecordingSession[];
+    schedules: NVRRecordingSchedule[];
+    recentHistory: NVRRecordingSession[];
+  } {
+    return {
+      isRecording: this.nvrRecordingConfig.activeSessions.length > 0,
+      activeSessions: [...this.nvrRecordingConfig.activeSessions],
+      schedules: [...this.nvrRecordingConfig.schedules],
+      recentHistory: this.nvrRecordingConfig.recordingHistory.slice(-10) // Last 10 recordings
+    };
+  }
+
+  /**
+   * Clean up old recording sessions
+   */
+  private cleanupOldRecordingSessions(): void {
+    if (!this.nvrRecordingConfig.autoCleanup) {
+      return;
+    }
+
+    const cutoffTime = Date.now() - (this.nvrRecordingConfig.cleanupAfterDays * 24 * 60 * 60 * 1000);
+    const initialLength = this.nvrRecordingConfig.recordingHistory.length;
+
+    this.nvrRecordingConfig.recordingHistory = this.nvrRecordingConfig.recordingHistory.filter(
+      session => (session.endTime || session.startTime) > cutoffTime
+    );
+
+    const cleaned = initialLength - this.nvrRecordingConfig.recordingHistory.length;
+    if (cleaned > 0) {
+      this.log(`Cleaned up ${cleaned} old recording sessions`);
+    }
+  }
+
+  /**
+   * Enable/disable NVR recording system
+   */
+  async setNVRRecordingEnabled(enabled: boolean): Promise<boolean> {
+    try {
+      this.nvrRecordingConfig.enabled = enabled;
+      this.log(`NVR recording system ${enabled ? 'enabled' : 'disabled'}`);
+
+      if (enabled) {
+        this.startRecordingScheduleMonitoring();
+      } else {
+        this.stopRecordingScheduleMonitoring();
+        // Stop all active recordings
+        const activeSessions = [...this.nvrRecordingConfig.activeSessions];
+        for (const session of activeSessions) {
+          await this.stopNVRRecordingSession(session.id);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      this.error('Error setting NVR recording enabled:', error);
+      return false;
     }
   }
 }
