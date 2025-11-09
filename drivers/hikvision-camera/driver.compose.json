@@ -1,0 +1,344 @@
+{
+  "class": "sensor",
+  "capabilities": [
+    "camera_status",
+    "motion_detected",
+    "recording_status",
+    "stream_quality",
+    "connection_strength",
+    "ptz_position",
+    "alarm_state",
+    "last_alarm"
+  ],
+  "capabilitiesOptions": {
+    "camera_snapshot": {
+      "preventInsights": true
+    }
+  },
+  "name": {
+    "en": "Hikvision Camera",
+    "nl": "Hikvision Camera",
+    "de": "Hikvision Kamera"
+  },
+  "images": {
+    "large": "/drivers/hikvision-camera/assets/images/large.png",
+    "small": "/drivers/hikvision-camera/assets/images/small.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "settings": [
+    {
+      "type": "group",
+      "label": {
+        "en": "Camera Settings",
+        "nl": "Camera Instellingen",
+        "de": "Kamera Einstellungen"
+      },
+      "children": [
+        {
+          "id": "channel",
+          "type": "number",
+          "value": 1,
+          "min": 1,
+          "max": 32,
+          "label": {
+            "en": "Camera Channel",
+            "nl": "Camera Kanaal",
+            "de": "Kamera Kanal"
+          }
+        },
+        {
+          "id": "name",
+          "type": "text",
+          "value": "Camera",
+          "label": {
+            "en": "Camera Name",
+            "nl": "Camera Naam",
+            "de": "Kamera Name"
+          }
+        },
+        {
+          "id": "nvrDeviceId",
+          "type": "text",
+          "value": "",
+          "label": {
+            "en": "NVR Device ID",
+            "nl": "NVR Apparaat ID",
+            "de": "NVR Gerät ID"
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Streaming Settings",
+        "nl": "Streaming Instellingen",
+        "de": "Streaming Einstellungen"
+      },
+      "children": [
+        {
+          "id": "streamQuality",
+          "type": "dropdown",
+          "value": "high",
+          "label": {
+            "en": "Stream Quality",
+            "nl": "Stream Kwaliteit",
+            "de": "Stream Qualität"
+          },
+          "values": [
+            {
+              "id": "low",
+              "label": {
+                "en": "Low (Sub-stream)",
+                "nl": "Laag (Sub-stream)",
+                "de": "Niedrig (Sub-stream)"
+              }
+            },
+            {
+              "id": "medium",
+              "label": {
+                "en": "Medium",
+                "nl": "Medium",
+                "de": "Mittel"
+              }
+            },
+            {
+              "id": "high",
+              "label": {
+                "en": "High (Main-stream)",
+                "nl": "Hoog (Main-stream)",
+                "de": "Hoch (Main-stream)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "streamResolution",
+          "type": "dropdown",
+          "value": "1920x1080",
+          "label": {
+            "en": "Stream Resolution",
+            "nl": "Stream Resolutie",
+            "de": "Stream Auflösung"
+          },
+          "values": [
+            {
+              "id": "640x480",
+              "label": {
+                "en": "640x480 (VGA)",
+                "nl": "640x480 (VGA)",
+                "de": "640x480 (VGA)"
+              }
+            },
+            {
+              "id": "1280x720",
+              "label": {
+                "en": "1280x720 (HD)",
+                "nl": "1280x720 (HD)",
+                "de": "1280x720 (HD)"
+              }
+            },
+            {
+              "id": "1920x1080",
+              "label": {
+                "en": "1920x1080 (Full HD)",
+                "nl": "1920x1080 (Full HD)",
+                "de": "1920x1080 (Full HD)"
+              }
+            },
+            {
+              "id": "2560x1440",
+              "label": {
+                "en": "2560x1440 (2K)",
+                "nl": "2560x1440 (2K)",
+                "de": "2560x1440 (2K)"
+              }
+            },
+            {
+              "id": "3840x2160",
+              "label": {
+                "en": "3840x2160 (4K)",
+                "nl": "3840x2160 (4K)",
+                "de": "3840x2160 (4K)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "refreshRate",
+          "type": "number",
+          "value": 5,
+          "min": 1,
+          "max": 30,
+          "units": "s",
+          "label": {
+            "en": "Image Refresh Rate",
+            "nl": "Beeld Verversingssnelheid",
+            "de": "Bildaktualisierungsrate"
+          },
+          "hint": {
+            "en": "How often to refresh the camera image (seconds)",
+            "nl": "Hoe vaak het camera beeld wordt ververst (seconden)",
+            "de": "Wie oft das Kamerabild aktualisiert wird (Sekunden)"
+          }
+        },
+        {
+          "id": "enableSubStream",
+          "type": "checkbox",
+          "value": true,
+          "label": {
+            "en": "Enable Sub-stream",
+            "nl": "Sub-stream Inschakelen",
+            "de": "Sub-stream Aktivieren"
+          },
+          "hint": {
+            "en": "Enable lower quality sub-stream for better performance",
+            "nl": "Schakel lagere kwaliteit sub-stream in voor betere prestaties",
+            "de": "Niedrigere Qualität Sub-stream für bessere Leistung aktivieren"
+          }
+        },
+        {
+          "id": "snapshotResolution",
+          "type": "dropdown",
+          "value": "high",
+          "label": {
+            "en": "Snapshot Resolution",
+            "nl": "Momentopname Resolutie",
+            "de": "Schnappschuss Auflösung"
+          },
+          "values": [
+            {
+              "id": "low",
+              "label": {
+                "en": "Low Quality",
+                "nl": "Lage Kwaliteit",
+                "de": "Niedrige Qualität"
+              }
+            },
+            {
+              "id": "medium",
+              "label": {
+                "en": "Medium Quality",
+                "nl": "Gemiddelde Kwaliteit",
+                "de": "Mittlere Qualität"
+              }
+            },
+            {
+              "id": "high",
+              "label": {
+                "en": "High Quality",
+                "nl": "Hoge Kwaliteit",
+                "de": "Hohe Qualität"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Alarm Settings",
+        "nl": "Alarm Instellingen",
+        "de": "Alarm Einstellungen"
+      },
+      "children": [
+        {
+          "id": "enableAlarmForwarding",
+          "type": "checkbox",
+          "value": true,
+          "label": {
+            "en": "Enable Alarm Forwarding",
+            "nl": "Alarm Doorsturen Inschakelen",
+            "de": "Alarm Weiterleitung Aktivieren"
+          },
+          "hint": {
+            "en": "Receive alarm events from NVR for this camera",
+            "nl": "Ontvang alarm gebeurtenissen van NVR voor deze camera",
+            "de": "Alarm-Ereignisse vom NVR für diese Kamera empfangen"
+          }
+        },
+        {
+          "id": "motionSensitivity",
+          "type": "dropdown",
+          "value": "medium",
+          "label": {
+            "en": "Motion Detection Sensitivity",
+            "nl": "Bewegingsdetectie Gevoeligheid",
+            "de": "Bewegungserkennung Empfindlichkeit"
+          },
+          "values": [
+            {
+              "id": "low",
+              "label": {
+                "en": "Low",
+                "nl": "Laag",
+                "de": "Niedrig"
+              }
+            },
+            {
+              "id": "medium",
+              "label": {
+                "en": "Medium",
+                "nl": "Medium",
+                "de": "Mittel"
+              }
+            },
+            {
+              "id": "high",
+              "label": {
+                "en": "High",
+                "nl": "Hoog",
+                "de": "Hoch"
+              }
+            }
+          ]
+        },
+        {
+          "id": "autoSnapshot",
+          "type": "checkbox",
+          "value": true,
+          "label": {
+            "en": "Auto-Snapshot on Alarm",
+            "nl": "Automatische Momentopname bij Alarm",
+            "de": "Automatischer Schnappschuss bei Alarm"
+          },
+          "hint": {
+            "en": "Automatically take snapshot when motion is detected",
+            "nl": "Automatisch een momentopname maken wanneer beweging wordt gedetecteerd",
+            "de": "Automatisch Schnappschuss machen wenn Bewegung erkannt wird"
+          }
+        },
+        {
+          "id": "alarmCooldown",
+          "type": "number",
+          "value": 5,
+          "min": 1,
+          "max": 60,
+          "label": {
+            "en": "Alarm Cooldown (seconds)",
+            "nl": "Alarm Afkoelperiode (seconden)",
+            "de": "Alarm Abkühlzeit (Sekunden)"
+          },
+          "hint": {
+            "en": "Minimum time between alarm notifications",
+            "nl": "Minimale tijd tussen alarm meldingen",
+            "de": "Mindestzeit zwischen Alarm-Benachrichtigungen"
+          }
+        }
+      ]
+    }
+  ]
+}

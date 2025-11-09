@@ -1,0 +1,65 @@
+{
+  "id": "com.hikvision",
+  "version": "0.2.3",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Hikvision",
+    "nl": "Hikvision",
+    "de": "Hikvision"
+  },
+  "description": {
+    "en": "Will add support to the Hikvision Cameras",
+    "nl": "Voegt ondersteuning toe voor Hikvision Camera's",
+    "de": "Unterstützung für Hikvision Kameras"
+  },
+  "category": "security",
+  "homeyCommunityTopicId": 16642,
+  "tags": {
+    "en": [
+      "Hikvision",
+      "Camera",
+      "Security",
+      "ABUS",
+      "Grundig",
+      "Annke",
+      "CCTVStar"
+    ],
+    "nl": [
+      "Hikvision",
+      "Camera",
+      "Security",
+      "ABUS",
+      "Grundig",
+      "Annke",
+      "CCTVStar"
+    ]
+  },
+  "images": {
+    "large": "assets/images/large.png",
+    "small": "assets/images/small.png"
+  },
+  "author": {
+    "email": "martin@pussamsies.de",
+    "name": "Martin P"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Peter Kristensen",
+        "email": "peter@stangsdal.dk"
+      }
+    ]
+  },
+  "brandColor": "#d71820",
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "mapulu"
+      }
+    }
+  }
+}

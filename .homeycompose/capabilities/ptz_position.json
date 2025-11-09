@@ -1,0 +1,11 @@
+{
+  "type": "string",
+  "title": {
+    "en": "PTZ Position",
+    "nl": "PTZ Positie",
+    "de": "PTZ Position"
+  },
+  "getable": true,
+  "setable": false,
+  "icon": "assets/position.svg"
+}

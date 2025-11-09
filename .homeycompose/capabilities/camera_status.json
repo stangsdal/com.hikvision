@@ -1,0 +1,22 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Camera Online",
+    "nl": "Camera Online",
+    "de": "Kamera Online"
+  },
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Online",
+    "nl": "Online",
+    "de": "Online"
+  },
+  "insightsTitleFalse": {
+    "en": "Offline",
+    "nl": "Offline",
+    "de": "Offline"
+  },
+  "getable": true,
+  "setable": false,
+  "icon": "assets/info.svg"
+}

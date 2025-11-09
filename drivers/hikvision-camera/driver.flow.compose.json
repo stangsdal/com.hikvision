@@ -1,0 +1,1287 @@
+{
+  "triggers": [
+    {
+      "id": "camera_connected",
+      "title": {
+        "en": "Camera Connected",
+        "nl": "Camera Verbonden",
+        "de": "Kamera Verbunden"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_disconnected",
+      "title": {
+        "en": "Camera Disconnected",
+        "nl": "Camera Losgekoppeld",
+        "de": "Kamera Getrennt"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_motion_start",
+      "title": {
+        "en": "Motion Detected",
+        "nl": "Beweging Gedetecteerd",
+        "de": "Bewegung Erkannt"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_motion_stop",
+      "title": {
+        "en": "Motion Stopped",
+        "nl": "Beweging Gestopt",
+        "de": "Bewegung Beendet"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_alarm_start",
+      "title": {
+        "en": "Camera Alarm Started",
+        "nl": "Camera Alarm Gestart",
+        "de": "Kamera Alarm Gestartet"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_alarm_stop",
+      "title": {
+        "en": "Camera Alarm Stopped",
+        "nl": "Camera Alarm Gestopt",
+        "de": "Kamera Alarm Beendet"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_video_loss_start",
+      "title": {
+        "en": "Camera Video Loss",
+        "nl": "Camera Video Verlies",
+        "de": "Kamera Videoverlust"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_video_loss_stop",
+      "title": {
+        "en": "Camera Video Restored",
+        "nl": "Camera Video Hersteld",
+        "de": "Kamera Video Wiederhergestellt"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_video_blind_start",
+      "title": {
+        "en": "Camera Video Blind",
+        "nl": "Camera Video Blind",
+        "de": "Kamera Sabotage"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_video_blind_stop",
+      "title": {
+        "en": "Camera Video Unblind",
+        "nl": "Camera Video Unblind",
+        "de": "Kamera Sabotage Beendet"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_line_detection_start",
+      "title": {
+        "en": "Line Crossing Detected",
+        "nl": "Lijn Oversteek Gedetecteerd",
+        "de": "Linienüberquerung Erkannt"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_line_detection_stop",
+      "title": {
+        "en": "Line Crossing Stopped",
+        "nl": "Lijn Oversteek Gestopt",
+        "de": "Linienüberquerung Beendet"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_intrusion_start",
+      "title": {
+        "en": "Intrusion Detected",
+        "nl": "Inbraak Gedetecteerd",
+        "de": "Einbruch Erkannt"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_intrusion_stop",
+      "title": {
+        "en": "Intrusion Stopped",
+        "nl": "Inbraak Gestopt",
+        "de": "Einbruch Beendet"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_smart_motion_detected",
+      "title": {
+        "en": "Smart Motion Detected",
+        "nl": "Slimme Beweging Gedetecteerd",
+        "de": "Intelligente Bewegung Erkannt"
+      },
+      "tokens": [
+        {
+          "name": "zones",
+          "type": "number",
+          "title": {
+            "en": "Active Zones",
+            "nl": "Actieve Zones",
+            "de": "Aktive Zonen"
+          }
+        },
+        {
+          "name": "sensitivity",
+          "type": "string",
+          "title": {
+            "en": "Sensitivity Level",
+            "nl": "Gevoeligheidsniveau",
+            "de": "Empfindlichkeitsstufe"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "camera_health_alert",
+      "title": {
+        "en": "Health Alert",
+        "nl": "Gezondheidsalarm",
+        "de": "Gesundheitsalarm"
+      },
+      "tokens": [
+        {
+          "name": "alert_type",
+          "type": "string",
+          "title": {
+            "en": "Alert Type",
+            "nl": "Alarm Type",
+            "de": "Alarm Typ"
+          }
+        },
+        {
+          "name": "severity",
+          "type": "string",
+          "title": {
+            "en": "Severity",
+            "nl": "Ernst",
+            "de": "Schweregrad"
+          }
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "title": {
+            "en": "Message",
+            "nl": "Bericht",
+            "de": "Nachricht"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "camera_recording_started",
+      "title": {
+        "en": "Recording Started",
+        "nl": "Opname Gestart",
+        "de": "Aufnahme Gestartet"
+      },
+      "tokens": [
+        {
+          "name": "trigger_type",
+          "type": "string",
+          "title": {
+            "en": "Trigger Type",
+            "nl": "Trigger Type",
+            "de": "Auslöser Typ"
+          }
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "title": {
+            "en": "Duration (minutes)",
+            "nl": "Duur (minuten)",
+            "de": "Dauer (Minuten)"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "string",
+          "title": {
+            "en": "Quality",
+            "nl": "Kwaliteit",
+            "de": "Qualität"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "camera_recording_stopped",
+      "title": {
+        "en": "Recording Stopped",
+        "nl": "Opname Gestopt",
+        "de": "Aufnahme Gestoppt"
+      },
+      "tokens": [
+        {
+          "name": "duration",
+          "type": "number",
+          "title": {
+            "en": "Duration (minutes)",
+            "nl": "Duur (minuten)",
+            "de": "Dauer (Minuten)"
+          }
+        },
+        {
+          "name": "trigger_type",
+          "type": "string",
+          "title": {
+            "en": "Trigger Type",
+            "nl": "Trigger Type",
+            "de": "Auslöser Typ"
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "conditions": [
+    {
+      "id": "camera_is_online",
+      "title": {
+        "en": "Camera is online",
+        "nl": "Camera is online",
+        "de": "Kamera ist online"
+      },
+      "titleFormatted": {
+        "en": "Camera !{{is|is not}} online"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_motion_detected",
+      "title": {
+        "en": "Motion is detected",
+        "nl": "Beweging wordt gedetecteerd",
+        "de": "Bewegung wird erkannt"
+      },
+      "titleFormatted": {
+        "en": "Motion !{{is|is not}} detected"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_is_recording",
+      "title": {
+        "en": "Camera is recording",
+        "nl": "Camera neemt op",
+        "de": "Kamera nimmt auf"
+      },
+      "titleFormatted": {
+        "en": "Camera !{{is|is not}} recording"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_alarm_active",
+      "title": {
+        "en": "Camera alarm is active",
+        "nl": "Camera alarm is actief",
+        "de": "Kamera Alarm ist aktiv"
+      },
+      "titleFormatted": {
+        "en": "Camera alarm !{{is|is not}} active"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_connection_strength",
+      "title": {
+        "en": "Connection strength",
+        "nl": "Verbindingssterkte",
+        "de": "Verbindungsstärke"
+      },
+      "titleFormatted": {
+        "en": "Connection strength !{{is stronger than|is weaker than}} [[strength]]%"
+      },
+      "args": [
+        {
+          "name": "strength",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "placeholder": {
+            "en": "Strength %",
+            "nl": "Sterkte %",
+            "de": "Stärke %"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_performance_health",
+      "title": {
+        "en": "Performance health",
+        "nl": "Prestatie gezondheid",
+        "de": "Leistungsgesundheit"
+      },
+      "titleFormatted": {
+        "en": "Performance health !{{is|is not}} [[health_level]]"
+      },
+      "args": [
+        {
+          "name": "health_level",
+          "type": "dropdown",
+          "title": {
+            "en": "Health Level",
+            "nl": "Gezondheidsniveau",
+            "de": "Gesundheitsniveau"
+          },
+          "values": [
+            {
+              "id": "excellent",
+              "title": {
+                "en": "Excellent",
+                "nl": "Uitstekend",
+                "de": "Ausgezeichnet"
+              }
+            },
+            {
+              "id": "good",
+              "title": {
+                "en": "Good",
+                "nl": "Goed",
+                "de": "Gut"
+              }
+            },
+            {
+              "id": "fair",
+              "title": {
+                "en": "Fair",
+                "nl": "Redelijk",
+                "de": "Ausreichend"
+              }
+            },
+            {
+              "id": "poor",
+              "title": {
+                "en": "Poor",
+                "nl": "Slecht",
+                "de": "Schlecht"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "camera_memory_usage",
+      "title": {
+        "en": "Memory usage",
+        "nl": "Geheugengebruik",
+        "de": "Speicherverbrauch"
+      },
+      "titleFormatted": {
+        "en": "Memory usage !{{is higher than|is lower than}} [[usage_mb]] MB"
+      },
+      "args": [
+        {
+          "name": "usage_mb",
+          "type": "number",
+          "min": 0,
+          "max": 1000,
+          "placeholder": {
+            "en": "Usage (MB)",
+            "nl": "Gebruik (MB)",
+            "de": "Verbrauch (MB)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_response_time",
+      "title": {
+        "en": "Response time",
+        "nl": "Reactietijd",
+        "de": "Antwortzeit"
+      },
+      "titleFormatted": {
+        "en": "Average response time !{{is faster than|is slower than}} [[time_ms]] ms"
+      },
+      "args": [
+        {
+          "name": "time_ms",
+          "type": "number",
+          "min": 100,
+          "max": 30000,
+          "placeholder": {
+            "en": "Time (ms)",
+            "nl": "Tijd (ms)",
+            "de": "Zeit (ms)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_adaptive_streaming_active",
+      "title": {
+        "en": "Adaptive streaming is active",
+        "nl": "Adaptieve streaming is actief",
+        "de": "Adaptive Streaming ist aktiv"
+      },
+      "titleFormatted": {
+        "en": "Adaptive streaming !{{is|is not}} active"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_stream_quality_is",
+      "title": {
+        "en": "Stream quality is",
+        "nl": "Streamkwaliteit is",
+        "de": "Stream-Qualität ist"
+      },
+      "titleFormatted": {
+        "en": "Current stream quality !{{is|is not}} [[quality]]"
+      },
+      "args": [
+        {
+          "name": "quality",
+          "type": "dropdown",
+          "title": {
+            "en": "Quality Level",
+            "nl": "Kwaliteitsniveau",
+            "de": "Qualitätsstufe"
+          },
+          "values": [
+            {
+              "id": "ultra",
+              "title": {
+                "en": "Ultra (4K)",
+                "nl": "Ultra (4K)",
+                "de": "Ultra (4K)"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High (1080p)",
+                "nl": "Hoog (1080p)",
+                "de": "Hoch (1080p)"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium (720p)",
+                "nl": "Gemiddeld (720p)",
+                "de": "Mittel (720p)"
+              }
+            },
+            {
+              "id": "low",
+              "title": {
+                "en": "Low (480p)",
+                "nl": "Laag (480p)",
+                "de": "Niedrig (480p)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "camera_error_rate",
+      "title": {
+        "en": "Error rate",
+        "nl": "Foutpercentage",
+        "de": "Fehlerrate"
+      },
+      "titleFormatted": {
+        "en": "Error rate !{{is higher than|is lower than}} [[rate]]%"
+      },
+      "args": [
+        {
+          "name": "rate",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "placeholder": {
+            "en": "Error rate %",
+            "nl": "Foutpercentage %",
+            "de": "Fehlerrate %"
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "camera_ptz_control",
+      "title": {
+        "en": "Camera PTZ Control",
+        "nl": "Camera PTZ Besturing",
+        "de": "Kamera PTZ Steuerung"
+      },
+      "titleFormatted": {
+        "en": "Control camera PTZ: Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]"
+      },
+      "hint": {
+        "en": "Relative Values (-100 to 100)",
+        "nl": "Relative waarden (-100 tot 100)",
+        "de": "Relative Werte (-100 bis 100)"
+      },
+      "args": [
+        {
+          "name": "pannumber",
+          "type": "number",
+          "min": -100,
+          "max": 100,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Pan number",
+            "nl": "Pan nummer",
+            "de": "Pan nummer"
+          }
+        },
+        {
+          "name": "tiltnumber",
+          "type": "number",
+          "min": -100,
+          "max": 100,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Tilt number",
+            "nl": "Tilt nummer",
+            "de": "Tilt nummer"
+          }
+        },
+        {
+          "name": "zoomnumber",
+          "type": "number",
+          "min": -100,
+          "max": 100,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Zoom number",
+            "nl": "Zoom nummer",
+            "de": "Zoom nummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_take_snapshot",
+      "title": {
+        "en": "Take Snapshot",
+        "nl": "Maak Momentopname",
+        "de": "Schnappschuss Aufnehmen"
+      },
+      "titleFormatted": {
+        "en": "Take a snapshot of the camera"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_start_recording",
+      "title": {
+        "en": "Start Recording",
+        "nl": "Start Opname",
+        "de": "Aufnahme Starten"
+      },
+      "titleFormatted": {
+        "en": "Start recording on camera"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_stop_recording",
+      "title": {
+        "en": "Stop Recording",
+        "nl": "Stop Opname",
+        "de": "Aufnahme Stoppen"
+      },
+      "titleFormatted": {
+        "en": "Stop recording on camera"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_refresh_stream",
+      "title": {
+        "en": "Refresh Camera Stream",
+        "nl": "Ververs Camera Stream",
+        "de": "Kamera Stream Aktualisieren"
+      },
+      "titleFormatted": {
+        "en": "Refresh the camera image stream"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_goto_preset",
+      "title": {
+        "en": "Go to PTZ Preset",
+        "nl": "Ga naar PTZ Preset",
+        "de": "Zu PTZ Preset Gehen"
+      },
+      "titleFormatted": {
+        "en": "Move camera to preset [[preset_number]]"
+      },
+      "args": [
+        {
+          "name": "preset_number",
+          "type": "number",
+          "min": 1,
+          "max": 255,
+          "placeholder": {
+            "en": "Preset Number",
+            "nl": "Preset Nummer",
+            "de": "Preset Nummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_set_preset",
+      "title": {
+        "en": "Set PTZ Preset",
+        "nl": "Stel PTZ Preset In",
+        "de": "PTZ Preset Setzen"
+      },
+      "titleFormatted": {
+        "en": "Save current position as preset [[preset_number]]"
+      },
+      "args": [
+        {
+          "name": "preset_number",
+          "type": "number",
+          "min": 1,
+          "max": 255,
+          "placeholder": {
+            "en": "Preset Number",
+            "nl": "Preset Nummer",
+            "de": "Preset Nummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_ptz_stop",
+      "title": {
+        "en": "Stop PTZ Movement",
+        "nl": "Stop PTZ Beweging",
+        "de": "PTZ Bewegung Stoppen"
+      },
+      "titleFormatted": {
+        "en": "Stop all PTZ movements"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_clear_alarm_history",
+      "title": {
+        "en": "Clear Alarm History",
+        "nl": "Alarm Geschiedenis Wissen",
+        "de": "Alarmverlauf Löschen"
+      },
+      "titleFormatted": {
+        "en": "Clear all alarm history entries for this camera"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_create_named_preset",
+      "title": {
+        "en": "Create Named PTZ Preset",
+        "nl": "Benoemde PTZ Voorinstelling Maken",
+        "de": "Benannte PTZ Voreinstellung Erstellen"
+      },
+      "titleFormatted": {
+        "en": "Create preset [[preset_name]] with ID [[preset_id]] at current position"
+      },
+      "args": [
+        {
+          "name": "preset_id",
+          "type": "number",
+          "min": 1,
+          "max": 255,
+          "title": {
+            "en": "Preset ID",
+            "nl": "Voorinstelling ID",
+            "de": "Voreinstellung ID"
+          }
+        },
+        {
+          "name": "preset_name",
+          "type": "text",
+          "title": {
+            "en": "Preset Name",
+            "nl": "Voorinstelling Naam",
+            "de": "Voreinstellung Name"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_delete_preset",
+      "title": {
+        "en": "Delete PTZ Preset",
+        "nl": "PTZ Voorinstelling Verwijderen",
+        "de": "PTZ Voreinstellung Löschen"
+      },
+      "titleFormatted": {
+        "en": "Delete preset with ID [[preset_id]]"
+      },
+      "args": [
+        {
+          "name": "preset_id",
+          "type": "number",
+          "min": 1,
+          "max": 255,
+          "title": {
+            "en": "Preset ID",
+            "nl": "Voorinstelling ID",
+            "de": "Voreinstellung ID"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_switch_stream_profile",
+      "title": {
+        "en": "Switch Streaming Profile",
+        "nl": "Streaming Profiel Wisselen",
+        "de": "Streaming-Profil Wechseln"
+      },
+      "titleFormatted": {
+        "en": "Switch to streaming profile [[profile_id]]"
+      },
+      "args": [
+        {
+          "name": "profile_id",
+          "type": "dropdown",
+          "title": {
+            "en": "Stream Profile",
+            "nl": "Stream Profiel",
+            "de": "Stream-Profil"
+          },
+          "values": [
+            {
+              "id": "ultra",
+              "label": {
+                "en": "Ultra Quality (4K)",
+                "nl": "Ultra Kwaliteit (4K)",
+                "de": "Ultra Qualität (4K)"
+              }
+            },
+            {
+              "id": "high",
+              "label": {
+                "en": "High Quality (1080p)",
+                "nl": "Hoge Kwaliteit (1080p)",
+                "de": "Hohe Qualität (1080p)"
+              }
+            },
+            {
+              "id": "medium",
+              "label": {
+                "en": "Medium Quality (720p)",
+                "nl": "Gemiddelde Kwaliteit (720p)",
+                "de": "Mittlere Qualität (720p)"
+              }
+            },
+            {
+              "id": "low",
+              "label": {
+                "en": "Low Quality (480p)",
+                "nl": "Lage Kwaliteit (480p)",
+                "de": "Niedrige Qualität (480p)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "camera_set_adaptive_streaming",
+      "title": {
+        "en": "Set Adaptive Streaming",
+        "nl": "Adaptieve Streaming Instellen",
+        "de": "Adaptives Streaming Einstellen"
+      },
+      "titleFormatted": {
+        "en": "[[enabled]] adaptive streaming",
+        "nl": "[[enabled]] adaptieve streaming",
+        "de": "[[enabled]] adaptives Streaming"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "checkbox",
+          "title": {
+            "en": "Enable Adaptive Streaming",
+            "nl": "Adaptieve Streaming Inschakelen",
+            "de": "Adaptives Streaming Aktivieren"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_start_advanced_recording",
+      "title": {
+        "en": "Start Advanced Recording",
+        "nl": "Start Geavanceerde Opname",
+        "de": "Erweiterte Aufnahme Starten"
+      },
+      "titleFormatted": {
+        "en": "Start advanced recording for [[duration]] minutes in [[quality]] quality",
+        "nl": "Start geavanceerde opname voor [[duration]] minuten in [[quality]] kwaliteit",
+        "de": "Erweiterte Aufnahme für [[duration]] Minuten in [[quality]] Qualität starten"
+      },
+      "args": [
+        {
+          "name": "duration",
+          "type": "number",
+          "min": 1,
+          "max": 120,
+          "step": 1,
+          "title": {
+            "en": "Duration (minutes)",
+            "nl": "Duur (minuten)",
+            "de": "Dauer (Minuten)"
+          },
+          "placeholder": {
+            "en": "30",
+            "nl": "30",
+            "de": "30"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "dropdown",
+          "title": {
+            "en": "Quality",
+            "nl": "Kwaliteit",
+            "de": "Qualität"
+          },
+          "values": [
+            {
+              "id": "ultra",
+              "title": {
+                "en": "Ultra (4K)",
+                "nl": "Ultra (4K)",
+                "de": "Ultra (4K)"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High (1080p)",
+                "nl": "Hoog (1080p)",
+                "de": "Hoch (1080p)"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium (720p)",
+                "nl": "Gemiddeld (720p)",
+                "de": "Mittel (720p)"
+              }
+            },
+            {
+              "id": "low",
+              "title": {
+                "en": "Low (480p)",
+                "nl": "Laag (480p)",
+                "de": "Niedrig (480p)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "camera_stop_recording_simple",
+      "title": {
+        "en": "Stop Recording (Simple)",
+        "nl": "Stop Opname (Eenvoudig)",
+        "de": "Aufnahme Stoppen (Einfach)"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_create_motion_zone",
+      "title": {
+        "en": "Create Motion Zone",
+        "nl": "Bewegingszone Maken",
+        "de": "Bewegungszone Erstellen"
+      },
+      "titleFormatted": {
+        "en": "Create motion zone [[zone_name]] with [[sensitivity]] sensitivity"
+      },
+      "args": [
+        {
+          "name": "zone_name",
+          "type": "text",
+          "title": {
+            "en": "Zone Name",
+            "nl": "Zone Naam",
+            "de": "Zone Name"
+          },
+          "placeholder": {
+            "en": "Front Door",
+            "nl": "Voordeur",
+            "de": "Haustür"
+          }
+        },
+        {
+          "name": "sensitivity",
+          "type": "dropdown",
+          "title": {
+            "en": "Sensitivity",
+            "nl": "Gevoeligheid",
+            "de": "Empfindlichkeit"
+          },
+          "values": [
+            {
+              "id": "low",
+              "title": {
+                "en": "Low",
+                "nl": "Laag",
+                "de": "Niedrig"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium",
+                "nl": "Gemiddeld",
+                "de": "Mittel"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High",
+                "nl": "Hoog",
+                "de": "Hoch"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "camera_enable_smart_motion",
+      "title": {
+        "en": "Enable Smart Motion Detection",
+        "nl": "Slimme Bewegingsdetectie Inschakelen",
+        "de": "Intelligente Bewegungserkennung Aktivieren"
+      },
+      "titleFormatted": {
+        "en": "[[enabled]] smart motion detection",
+        "nl": "[[enabled]] slimme bewegingsdetectie",
+        "de": "[[enabled]] intelligente Bewegungserkennung"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "checkbox",
+          "title": {
+            "en": "Enable Smart Motion Detection",
+            "nl": "Slimme Bewegingsdetectie Inschakelen",
+            "de": "Intelligente Bewegungserkennung Aktivieren"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_apply_configuration_profile",
+      "title": {
+        "en": "Apply Configuration Profile",
+        "nl": "Configuratie Profiel Toepassen",
+        "de": "Konfigurationsprofil Anwenden"
+      },
+      "titleFormatted": {
+        "en": "Apply configuration profile [[profile_id]]"
+      },
+      "args": [
+        {
+          "name": "profile_id",
+          "type": "dropdown",
+          "title": {
+            "en": "Configuration Profile",
+            "nl": "Configuratie Profiel",
+            "de": "Konfigurationsprofil"
+          },
+          "values": [
+            {
+              "id": "default_home",
+              "title": {
+                "en": "Home Network",
+                "nl": "Thuisnetwerk",
+                "de": "Heimnetzwerk"
+              }
+            },
+            {
+              "id": "mobile_optimized",
+              "title": {
+                "en": "Mobile Optimized",
+                "nl": "Mobiel Geoptimaliseerd",
+                "de": "Mobil Optimiert"
+              }
+            },
+            {
+              "id": "security_focused",
+              "title": {
+                "en": "Security Focused",
+                "nl": "Beveiligingsgericht",
+                "de": "Sicherheitsorientiert"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "camera_backup_configuration",
+      "title": {
+        "en": "Create Configuration Backup",
+        "nl": "Configuratie Back-up Maken",
+        "de": "Konfiguration Backup Erstellen"
+      },
+      "titleFormatted": {
+        "en": "Create configuration backup"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_generate_performance_report",
+      "title": {
+        "en": "Generate Performance Report",
+        "nl": "Prestatierapport Genereren",
+        "de": "Leistungsbericht Erstellen"
+      },
+      "titleFormatted": {
+        "en": "Generate performance report for the last [[hours]] hours"
+      },
+      "args": [
+        {
+          "name": "hours",
+          "type": "number",
+          "min": 1,
+          "max": 168,
+          "title": {
+            "en": "Time Range (hours)",
+            "nl": "Tijdsbereik (uren)",
+            "de": "Zeitbereich (Stunden)"
+          },
+          "placeholder": {
+            "en": "24",
+            "nl": "24",
+            "de": "24"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_reset_performance_metrics",
+      "title": {
+        "en": "Reset Performance Metrics",
+        "nl": "Prestatiemetrieken Resetten",
+        "de": "Leistungsmetriken Zurücksetzen"
+      },
+      "titleFormatted": {
+        "en": "Reset all performance metrics and alerts"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_enable_performance_monitoring",
+      "title": {
+        "en": "Configure Performance Monitoring",
+        "nl": "Prestatiemonitoring Configureren",
+        "de": "Leistungsüberwachung Konfigurieren"
+      },
+      "titleFormatted": {
+        "en": "[[enabled]] performance monitoring",
+        "nl": "[[enabled]] prestatiemonitoring",
+        "de": "[[enabled]] Leistungsüberwachung"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "checkbox",
+          "title": {
+            "en": "Enable Performance Monitoring",
+            "nl": "Prestatiemonitoring Inschakelen",
+            "de": "Leistungsüberwachung Aktivieren"
+          }
+        }
+      ]
+    },
+    {
+      "id": "camera_optimize_memory",
+      "title": {
+        "en": "Optimize Memory Usage",
+        "nl": "Geheugengebruik Optimaliseren",
+        "de": "Speicherverbrauch Optimieren"
+      },
+      "titleFormatted": {
+        "en": "Run memory optimization and cleanup"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_test_connection_quality",
+      "title": {
+        "en": "Test Connection Quality",
+        "nl": "Verbindingskwaliteit Testen",
+        "de": "Verbindungsqualität Testen"
+      },
+      "titleFormatted": {
+        "en": "Run comprehensive connection quality test"
+      },
+      "args": []
+    },
+    {
+      "id": "camera_create_smart_motion_zone",
+      "title": {
+        "en": "Create Smart Motion Zone",
+        "nl": "Slimme Bewegingszone Maken",
+        "de": "Intelligente Bewegungszone Erstellen"
+      },
+      "titleFormatted": {
+        "en": "Create smart motion zone [[zone_name]] with [[sensitivity]] sensitivity and [[filter_type]] filtering"
+      },
+      "args": [
+        {
+          "name": "zone_name",
+          "type": "text",
+          "title": {
+            "en": "Zone Name",
+            "nl": "Zone Naam",
+            "de": "Zone Name"
+          },
+          "placeholder": {
+            "en": "Smart Zone 1",
+            "nl": "Slimme Zone 1",
+            "de": "Intelligente Zone 1"
+          }
+        },
+        {
+          "name": "sensitivity",
+          "type": "dropdown",
+          "title": {
+            "en": "Sensitivity Level",
+            "nl": "Gevoeligheidsniveau",
+            "de": "Empfindlichkeitsstufe"
+          },
+          "values": [
+            {
+              "id": "very_low",
+              "title": {
+                "en": "Very Low",
+                "nl": "Zeer Laag",
+                "de": "Sehr Niedrig"
+              }
+            },
+            {
+              "id": "low",
+              "title": {
+                "en": "Low",
+                "nl": "Laag",
+                "de": "Niedrig"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium",
+                "nl": "Gemiddeld",
+                "de": "Mittel"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High",
+                "nl": "Hoog",
+                "de": "Hoch"
+              }
+            },
+            {
+              "id": "very_high",
+              "title": {
+                "en": "Very High",
+                "nl": "Zeer Hoog",
+                "de": "Sehr Hoch"
+              }
+            }
+          ]
+        },
+        {
+          "name": "filter_type",
+          "type": "dropdown",
+          "title": {
+            "en": "Filter Type",
+            "nl": "Filter Type",
+            "de": "Filter Typ"
+          },
+          "values": [
+            {
+              "id": "person_only",
+              "title": {
+                "en": "Person Only",
+                "nl": "Alleen Personen",
+                "de": "Nur Personen"
+              }
+            },
+            {
+              "id": "vehicle_only",
+              "title": {
+                "en": "Vehicle Only",
+                "nl": "Alleen Voertuigen",
+                "de": "Nur Fahrzeuge"
+              }
+            },
+            {
+              "id": "person_and_vehicle",
+              "title": {
+                "en": "Person and Vehicle",
+                "nl": "Personen en Voertuigen",
+                "de": "Personen und Fahrzeuge"
+              }
+            },
+            {
+              "id": "all_motion",
+              "title": {
+                "en": "All Motion",
+                "nl": "Alle Beweging",
+                "de": "Alle Bewegung"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,649 @@
+{
+  "triggers": [
+    {
+      "id": "OnConnected",
+      "title": {
+        "en": "Connected",
+        "nl": "Connected",
+        "de": "Verbunden"
+      },
+      "args": []
+    },
+    {
+      "id": "OnDisconnected",
+      "title": {
+        "en": "Disconnected",
+        "nl": "Disconnected",
+        "de": "Getrennt"
+      },
+      "args": []
+    },
+    {
+      "id": "OnError",
+      "title": {
+        "en": "Connection Error",
+        "nl": "Connection Error",
+        "de": "Verbindungsfehler"
+      },
+      "args": []
+    },
+    {
+      "id": "VideoMotionStart",
+      "title": {
+        "en": "VideoMotion Start",
+        "nl": "Video beweging gestart",
+        "de": "Bewegung Start"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "VideoMotionStop",
+      "title": {
+        "en": "VideoMotion Stop",
+        "nl": "Video beweging gestopt",
+        "de": "Bewegung Ende"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "AlarmLocalStart",
+      "title": {
+        "en": "Alarm Local Start",
+        "nl": "Lokaal alarm gestart",
+        "de": "Lokaler Alarm Start"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "AlarmLocalStop",
+      "title": {
+        "en": "Alarm local stop",
+        "nl": "Lokaal alarm gestopt",
+        "de": "Lokaler Alarm Ende"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "VideoLossStart",
+      "title": {
+        "en": "Videoloss Start",
+        "nl": "Geen Videosignaal",
+        "de": "Videoverlust Start"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "VideoLossStop",
+      "title": {
+        "en": "Videoloss Stop",
+        "nl": "Video signaal aanwezig",
+        "de": "Videoverlust Ende"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "VideoBlindStart",
+      "title": {
+        "en": "Videoblind start",
+        "nl": "Videoblind start",
+        "de": "Sabotage Start"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "VideoBlindStop",
+      "title": {
+        "en": "Video Unblind",
+        "nl": "Video Unblind",
+        "de": "Sabotage Ende"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "LineDetectionStart",
+      "title": {
+        "en": "Line Crossing Detection Start",
+        "nl": "Line CrossingDetection Start",
+        "de": "Linienüberquerungsdetektion Start"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "LineDetectionStop",
+      "title": {
+        "en": "Line Crossing Detection Stop",
+        "nl": "Line Crossing Detection Stop",
+        "de": "Linienüberquerungsdetektion Ende"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "IntrusionDetectionStart",
+      "title": {
+        "en": "Intrusion Detection Sart",
+        "nl": "Intrusion Detection Start",
+        "de": "Einbruchmeldung Start"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "IntrusionDetectionStop",
+      "title": {
+        "en": "Intrusion Detection Stop",
+        "nl": "Intrusion Detection Stop",
+        "de": "Einbruchmeldung Ende"
+      },
+      "tokens": [
+        {
+          "name": "channelID",
+          "type": "number",
+          "title": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          },
+          "example": "2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "nvr_health_alert",
+      "title": {
+        "en": "NVR Health Alert",
+        "nl": "NVR Gezondheidsalarm",
+        "de": "NVR Gesundheitsalarm"
+      },
+      "tokens": [
+        {
+          "name": "alert_type",
+          "type": "string",
+          "title": {
+            "en": "Alert Type",
+            "nl": "Alarm Type",
+            "de": "Alarm Typ"
+          }
+        },
+        {
+          "name": "severity",
+          "type": "string",
+          "title": {
+            "en": "Severity",
+            "nl": "Ernst",
+            "de": "Schweregrad"
+          }
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "title": {
+            "en": "Message",
+            "nl": "Bericht",
+            "de": "Nachricht"
+          }
+        },
+        {
+          "name": "channel_id",
+          "type": "number",
+          "title": {
+            "en": "Channel ID",
+            "nl": "Kanaal ID",
+            "de": "Kanal ID"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "nvr_recording_started",
+      "title": {
+        "en": "NVR Recording Started",
+        "nl": "NVR Opname Gestart",
+        "de": "NVR Aufnahme Gestartet"
+      },
+      "tokens": [
+        {
+          "name": "trigger_type",
+          "type": "string",
+          "title": {
+            "en": "Trigger Type",
+            "nl": "Trigger Type",
+            "de": "Auslöser Typ"
+          }
+        },
+        {
+          "name": "channels",
+          "type": "number",
+          "title": {
+            "en": "Channels",
+            "nl": "Kanalen",
+            "de": "Kanäle"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "string",
+          "title": {
+            "en": "Quality",
+            "nl": "Kwaliteit",
+            "de": "Qualität"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "nvr_recording_stopped",
+      "title": {
+        "en": "NVR Recording Stopped",
+        "nl": "NVR Opname Gestopt",
+        "de": "NVR Aufnahme Gestoppt"
+      },
+      "tokens": [
+        {
+          "name": "channel_id",
+          "type": "number",
+          "title": {
+            "en": "Channel ID",
+            "nl": "Kanaal ID",
+            "de": "Kanal ID"
+          }
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "title": {
+            "en": "Duration (minutes)",
+            "nl": "Duur (minuten)",
+            "de": "Dauer (Minuten)"
+          }
+        },
+        {
+          "name": "trigger_type",
+          "type": "string",
+          "title": {
+            "en": "Trigger Type",
+            "nl": "Trigger Type",
+            "de": "Auslöser Typ"
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "actions": [
+    {
+      "id": "ptzcontinuous",
+      "title": {
+        "en": "Relative PTZ",
+        "nl": "Relative PTZ",
+        "de": "Relativer PTZ"
+      },
+      "titleFormatted": {
+        "en": "Set relative PTZ: Cam: [[channel]] Pan: [[pannumber]] Tilt: [[tiltnumber]] Zoom: [[zoomnumber]]"
+      },
+      "hint": {
+        "en": "Relative Values (-100 to 100)",
+        "nl": "Relative Values(-100 to 100)",
+        "de": "Relative Werte (-100 bis 100)"
+      },
+      "args": [
+        {
+          "name": "pannumber",
+          "type": "number",
+          "min": -100,
+          "max": 100,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Pan number",
+            "nl": "Pan nummer",
+            "de": "Pan nummer"
+          }
+        },
+        {
+          "name": "tiltnumber",
+          "type": "number",
+          "min": -100,
+          "max": 100,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Tilt number",
+            "nl": "Tilt nummer",
+            "de": "Tilt nummer"
+          }
+        },
+        {
+          "name": "zoomnumber",
+          "type": "number",
+          "min": -100,
+          "max": 100,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Zoom number",
+            "nl": "Zoom nummer",
+            "de": "Zoom nummer"
+          }
+        },
+        {
+          "name": "channel",
+          "type": "number",
+          "min": 0,
+          "max": 36,
+          "step": 1,
+          "placeholder": {
+            "en": "Camera Number",
+            "nl": "Camera Number",
+            "de": "Kamera Nummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "nvr_start_recording",
+      "title": {
+        "en": "Start NVR Recording",
+        "nl": "Start NVR Opname",
+        "de": "NVR Aufnahme Starten"
+      },
+      "titleFormatted": {
+        "en": "Start recording channels [[channels]] for [[duration]] minutes in [[quality]] quality"
+      },
+      "args": [
+        {
+          "name": "channels",
+          "type": "text",
+          "title": {
+            "en": "Channels (comma separated)",
+            "nl": "Kanalen (komma gescheiden)",
+            "de": "Kanäle (kommagetrennt)"
+          },
+          "placeholder": {
+            "en": "1,2,3",
+            "nl": "1,2,3",
+            "de": "1,2,3"
+          }
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "min": 1,
+          "max": 480,
+          "step": 1,
+          "title": {
+            "en": "Duration (minutes)",
+            "nl": "Duur (minuten)",
+            "de": "Dauer (Minuten)"
+          },
+          "placeholder": {
+            "en": "30",
+            "nl": "30",
+            "de": "30"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "dropdown",
+          "title": {
+            "en": "Quality",
+            "nl": "Kwaliteit",
+            "de": "Qualität"
+          },
+          "values": [
+            {
+              "id": "ultra",
+              "title": {
+                "en": "Ultra (4K)",
+                "nl": "Ultra (4K)",
+                "de": "Ultra (4K)"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High (1080p)",
+                "nl": "Hoog (1080p)",
+                "de": "Hoch (1080p)"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium (720p)",
+                "nl": "Gemiddeld (720p)",
+                "de": "Mittel (720p)"
+              }
+            },
+            {
+              "id": "low",
+              "title": {
+                "en": "Low (480p)",
+                "nl": "Laag (480p)",
+                "de": "Niedrig (480p)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nvr_stop_all_recording",
+      "title": {
+        "en": "Stop All NVR Recording",
+        "nl": "Stop Alle NVR Opnames",
+        "de": "Alle NVR Aufnahmen Stoppen"
+      },
+      "args": []
+    },
+    {
+      "id": "nvr_create_recording_schedule",
+      "title": {
+        "en": "Create NVR Recording Schedule",
+        "nl": "NVR Opname Schema Maken",
+        "de": "NVR Aufnahmeplan Erstellen"
+      },
+      "titleFormatted": {
+        "en": "Create recording schedule [[schedule_name]] from [[start_time]] to [[end_time]]"
+      },
+      "args": [
+        {
+          "name": "schedule_name",
+          "type": "text",
+          "title": {
+            "en": "Schedule Name",
+            "nl": "Schema Naam",
+            "de": "Zeitplan Name"
+          },
+          "placeholder": {
+            "en": "Night Recording",
+            "nl": "Nacht Opname",
+            "de": "Nachtaufnahme"
+          }
+        },
+        {
+          "name": "start_time",
+          "type": "text",
+          "title": {
+            "en": "Start Time (HH:MM)",
+            "nl": "Start Tijd (UU:MM)",
+            "de": "Startzeit (HH:MM)"
+          },
+          "placeholder": {
+            "en": "22:00",
+            "nl": "22:00",
+            "de": "22:00"
+          }
+        },
+        {
+          "name": "end_time",
+          "type": "text",
+          "title": {
+            "en": "End Time (HH:MM)",
+            "nl": "Eind Tijd (UU:MM)",
+            "de": "Endzeit (HH:MM)"
+          },
+          "placeholder": {
+            "en": "06:00",
+            "nl": "06:00",
+            "de": "06:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "nvr_enable_recording",
+      "title": {
+        "en": "Enable NVR Recording System",
+        "nl": "NVR Opname Systeem Inschakelen",
+        "de": "NVR Aufnahmesystem Aktivieren"
+      },
+      "titleFormatted": {
+        "en": "[[enabled]] NVR recording system",
+        "nl": "[[enabled]] NVR opname systeem",
+        "de": "[[enabled]] NVR Aufnahmesystem"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "checkbox",
+          "title": {
+            "en": "Enable Recording System",
+            "nl": "Opname Systeem Inschakelen",
+            "de": "Aufnahmesystem Aktivieren"
+          }
+        }
+      ]
+    }
+  ]
+}

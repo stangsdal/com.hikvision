@@ -1,0 +1,15 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Connection Strength",
+    "nl": "Verbindingssterkte",
+    "de": "Verbindungsstärke"
+  },
+  "units": "%",
+  "min": 0,
+  "max": 100,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "icon": "assets/signal.svg"
+}

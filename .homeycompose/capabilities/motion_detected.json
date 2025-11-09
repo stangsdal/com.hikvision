@@ -1,0 +1,22 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Motion Detected",
+    "nl": "Beweging Gedetecteerd",
+    "de": "Bewegung Erkannt"
+  },
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Motion",
+    "nl": "Beweging",
+    "de": "Bewegung"
+  },
+  "insightsTitleFalse": {
+    "en": "No Motion",
+    "nl": "Geen Beweging",
+    "de": "Keine Bewegung"
+  },
+  "getable": true,
+  "setable": false,
+  "icon": "assets/motion.svg"
+}

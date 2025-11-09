@@ -1,0 +1,11 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Alarm State",
+    "nl": "Alarm Status",
+    "de": "Alarm Status"
+  },
+  "getable": true,
+  "setable": false,
+  "icon": "assets/alarm.svg"
+}

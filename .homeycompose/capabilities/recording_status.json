@@ -1,0 +1,22 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Recording",
+    "nl": "Opname",
+    "de": "Aufnahme"
+  },
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Recording",
+    "nl": "Opname",
+    "de": "Aufnahme"
+  },
+  "insightsTitleFalse": {
+    "en": "Not Recording",
+    "nl": "Geen Opname",
+    "de": "Keine Aufnahme"
+  },
+  "getable": true,
+  "setable": true,
+  "icon": "assets/record.svg"
+}

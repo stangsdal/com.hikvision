@@ -1,0 +1,104 @@
+{
+  "class": "sensor",
+  "capabilities": [
+    "hik_type",
+    "hik_version",
+    "hik_status"
+  ],
+  "name": {
+    "en": "Hikvision Device",
+    "nl": "Hikvision Device",
+    "de": "Hikvision Gerät"
+  },
+  "images": {
+    "large": "/drivers/hikvision-camnvr/assets/images/large.png",
+    "small": "/drivers/hikvision-camnvr/assets/images/small.png"
+  },
+  "pair": [
+    {
+      "id": "start"
+    }
+  ],
+  "settings": [
+    {
+      "type": "group",
+      "label": {
+        "en": "Hikvision Camera settings",
+        "nl": "Hikvision Camera instellingen",
+        "de": "Hikvision Kamera Einstellungen"
+      },
+      "children": [
+        {
+          "id": "address",
+          "type": "text",
+          "value": "192.168.10.140",
+          "label": {
+            "en": "IP Address",
+            "nl": "IP adres",
+            "de": "IP Adresse"
+          }
+        },
+        {
+          "id": "username",
+          "type": "text",
+          "label": {
+            "en": "Username",
+            "nl": "Gebruikersnaam",
+            "de": "Benutzername"
+          },
+          "value": "admin",
+          "hint": {
+            "en": "Username of the ip camera",
+            "nl": "Gebruikersnaam van de camera",
+            "de": "Benutzername der IP Kamera"
+          }
+        },
+        {
+          "id": "password",
+          "type": "password",
+          "label": {
+            "en": "Password",
+            "nl": "Wachtwoord",
+            "de": "Passwort"
+          },
+          "value": "ZmartGold2018",
+          "hint": {
+            "en": "Password of the ip camera",
+            "nl": "Wachtwoord van de camera",
+            "de": "Passwort der IP Kamera"
+          }
+        },
+        {
+          "id": "port",
+          "type": "number",
+          "label": {
+            "en": "Port",
+            "nl": "Port",
+            "de": "Port"
+          },
+          "value": 80
+        },
+        {
+          "id": "ssl",
+          "type": "checkbox",
+          "label": {
+            "en": "SSL",
+            "nl": "SSL",
+            "de": "SSL"
+          },
+          "value": false
+        },
+        {
+          "id": "strict",
+          "type": "checkbox",
+          "label": {
+            "en": "Strict",
+            "nl": "Strict",
+            "de": "Strict"
+          },
+          "value": false
+        }
+      ]
+    }
+  ]
+}

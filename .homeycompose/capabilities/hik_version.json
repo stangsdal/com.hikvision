@@ -1,0 +1,11 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Version",
+    "nl": "Versie",
+    "de": "Version"
+  },
+  "getable": true,
+  "setable": false,
+  "icon": "assets/info.svg"
+}
