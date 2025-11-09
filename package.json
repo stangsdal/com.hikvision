@@ -1,6 +1,6 @@
 {
   "name": "com.hikvision",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "description": "Hikvision Camera support for Homey",
   "scripts": {
     "build": "tsc",
@@ -28,7 +28,10 @@
     "camera",
     "security"
   ],
-  "author": "Martin P <martin@pussamsies.de>",
+  "author": "Peter Kristensen <peter@stangsdal.dk>",
+  "contributors": [
+    "Martin P <martin@pussamsies.de>"
+  ],
   "license": "MIT",
   "dependencies": {
     "request": "^2.88.2",

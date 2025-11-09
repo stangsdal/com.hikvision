@@ -1,6 +1,17 @@
 /**
- * Alarm Management Module
- * Handles alarm history, motion detection, and alert processing
+ * Alarm Management Module for Hikvision Cameras
+ *
+ * This module provides comprehensive alarm and motion detection capabilities including:
+ * - Real-time motion detection and processing
+ * - Smart motion zones with configurable sensitivity
+ * - Alarm history tracking and management
+ * - Event filtering and cooldown management
+ * - Integration with Homey flow triggers
+ *
+ * @fileoverview Alarm and motion detection management system
+ * @version 1.0.0
+ * @author Your Name <your.email@example.com>
+ * @since 1.0.0
  */
 
 import {
@@ -367,7 +378,7 @@ export class AlarmManager {
   private processSmartMotionEvent(action: 'start' | 'stop', zoneId?: string, metadata?: Record<string, unknown>): void {
     // This would integrate with AI detection capabilities
     const detectionType = this.determineDetectionType(metadata);
-    
+
     if (this.shouldTriggerSmartAlert(detectionType)) {
       this.addAlarm({
         type: 'smart_motion',

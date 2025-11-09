@@ -154,7 +154,7 @@ npm run test:performance
 ```json
 {
   "id": "com.hikvision",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "compatibility": ">=8.0.0",
   "name": {
     "en": "Hikvision Camera",

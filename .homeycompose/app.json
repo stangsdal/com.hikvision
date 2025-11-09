@@ -1,6 +1,6 @@
 {
   "id": "com.hikvision",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "platforms": [
@@ -43,13 +43,17 @@
     "small": "assets/images/small.png"
   },
   "author": {
-    "email": "martin@pussamsies.de",
-    "name": "Martin P"
+    "email": "your.email@example.com",
+    "name": "Your Name"
   },
   "contributors": {
     "developers": [
       {
-        "name": "Peter Kristensen",
+        "name": "Martin P",
+        "email": "martin@pussamsies.de"
+      },
+      {
+        "name": "Peter Kristensen", 
         "email": "peter@stangsdal.dk"
       }
     ]

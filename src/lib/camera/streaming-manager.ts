@@ -1,6 +1,17 @@
 /**
- * Streaming Management Module
- * Handles camera streaming, adaptive streaming, and image capture
+ * Streaming Management Module for Hikvision Cameras
+ *
+ * This module provides comprehensive video streaming capabilities including:
+ * - Adaptive streaming with automatic quality adjustment
+ * - Multiple stream profile management (Ultra, High, Medium, Low)
+ * - Real-time image capture and caching
+ * - Streaming statistics and performance monitoring
+ * - Network-aware quality optimization
+ *
+ * @fileoverview Video streaming and image capture management
+ * @version 1.0.0
+ * @author Your Name <your.email@example.com>
+ * @since 1.0.0
  */
 
 import request = require('request');
@@ -31,7 +42,7 @@ export class StreamingManager {
   };
 
   constructor(
-    baseUrl: string, 
+    baseUrl: string,
     auth: { username: string; password: string },
     settings: {
       streamQuality: QualityLevel;
@@ -83,7 +94,7 @@ export class StreamingManager {
     try {
       const imageUrl = this.getOptimalImageUrl();
       const imageData = await this.requestImage(imageUrl);
-      
+
       if (imageData) {
         this.updateStreamingStats(imageData.length);
         return imageData;
@@ -92,7 +103,7 @@ export class StreamingManager {
       throw new Error('Failed to retrieve camera image');
     } catch (error) {
       console.error('Get camera image failed:', error);
-      
+
       // Fallback to sub-stream if main stream fails
       if (this.settings.enableSubStream) {
         try {
@@ -115,7 +126,7 @@ export class StreamingManager {
   async takeSnapshot(): Promise<Buffer | null> {
     try {
       const snapshotData = await this.requestImage(this.snapshotUrl);
-      
+
       if (snapshotData) {
         this.streamingStats.framesReceived++;
         return snapshotData;
@@ -140,12 +151,12 @@ export class StreamingManager {
 
       // Apply the profile settings to the camera
       const success = await this.applyProfileToCamera(profile);
-      
+
       if (success) {
         this.currentProfile = profile;
         this.streamingStats.currentQuality = profile.quality;
         this.buildStreamUrls();
-        
+
         return true;
       }
 
@@ -184,7 +195,7 @@ export class StreamingManager {
       this.stopAdaptiveMonitoring();
       this.buildStreamUrls();
       await this.setupStreams();
-      
+
       if (this.adaptiveConfig.enabled) {
         this.startAdaptiveMonitoring();
       }
@@ -222,7 +233,7 @@ export class StreamingManager {
    */
   updateConfiguration(config: Partial<AdaptiveStreamingConfig>): void {
     this.adaptiveConfig = { ...this.adaptiveConfig, ...config };
-    
+
     if (this.adaptiveConfig.enabled) {
       this.restartAdaptiveMonitoring();
     }
@@ -233,7 +244,7 @@ export class StreamingManager {
    */
   private buildStreamUrls(): void {
     const channel = 1; // Default channel
-    
+
     this.mainStreamUrl = `${this.baseUrl}/ISAPI/Streaming/channels/${channel}01/picture`;
     this.subStreamUrl = `${this.baseUrl}/ISAPI/Streaming/channels/${channel}02/picture`;
     this.snapshotUrl = `${this.baseUrl}/ISAPI/Streaming/channels/${channel}/picture`;
@@ -261,7 +272,7 @@ export class StreamingManager {
     try {
       const streamConfig = this.buildStreamConfig('main');
       const configUrl = `${this.baseUrl}/ISAPI/Streaming/channels/101`;
-      
+
       await this.makeAuthenticatedRequest('PUT', configUrl, streamConfig);
     } catch (error) {
       console.error('Configure main stream failed:', error);
@@ -275,7 +286,7 @@ export class StreamingManager {
     try {
       const streamConfig = this.buildStreamConfig('sub');
       const configUrl = `${this.baseUrl}/ISAPI/Streaming/channels/102`;
-      
+
       await this.makeAuthenticatedRequest('PUT', configUrl, streamConfig);
     } catch (error) {
       console.error('Configure sub-stream failed:', error);
@@ -293,6 +304,7 @@ export class StreamingManager {
     return `
       <StreamingChannel>
         <channelName>${streamType === 'main' ? 'Main Stream' : 'Sub Stream'}</channelName>
+        <videoResolution>${resolution}</videoResolution>
         <enabled>true</enabled>
         <Transport>
           <maxPacketSize>1400</maxPacketSize>
@@ -473,7 +485,7 @@ export class StreamingManager {
       // Simple adaptation logic based on error rate
       const currentTime = Date.now();
       const timeSinceLastAdaptation = currentTime - this.streamingStats.lastAdaptation;
-      
+
       if (timeSinceLastAdaptation < this.adaptiveConfig.adaptationInterval) {
         return; // Too soon to adapt again
       }
@@ -499,11 +511,11 @@ export class StreamingManager {
   private async downgradeQuality(): Promise<void> {
     const qualityLevels: QualityLevel[] = ['ultra', 'high', 'medium', 'low'];
     const currentIndex = qualityLevels.indexOf(this.streamingStats.currentQuality as QualityLevel);
-    
+
     if (currentIndex < qualityLevels.length - 1) {
       const newQuality = qualityLevels[currentIndex + 1];
       const success = await this.switchToProfile(newQuality);
-      
+
       if (success) {
         this.streamingStats.adaptations++;
         this.streamingStats.lastAdaptation = Date.now();
@@ -518,11 +530,11 @@ export class StreamingManager {
   private async upgradeQuality(): Promise<void> {
     const qualityLevels: QualityLevel[] = ['ultra', 'high', 'medium', 'low'];
     const currentIndex = qualityLevels.indexOf(this.streamingStats.currentQuality as QualityLevel);
-    
+
     if (currentIndex > 0) {
       const newQuality = qualityLevels[currentIndex - 1];
       const success = await this.switchToProfile(newQuality);
-      
+
       if (success) {
         this.streamingStats.adaptations++;
         this.streamingStats.lastAdaptation = Date.now();
@@ -537,7 +549,7 @@ export class StreamingManager {
   private updateStreamingStats(bytesReceived: number): void {
     this.streamingStats.bytesReceived += bytesReceived;
     this.streamingStats.framesReceived++;
-    
+
     // Calculate average bitrate (simplified)
     const now = Date.now();
     const timeDiff = now - (this.streamingStats.lastAdaptation || now - 1000);
@@ -552,7 +564,7 @@ export class StreamingManager {
       // Query camera for supported resolutions and formats
       const capabilitiesUrl = `${this.baseUrl}/ISAPI/Streaming/channels/capabilities`;
       const response = await this.makeAuthenticatedRequest('GET', capabilitiesUrl);
-      
+
       if (response.success && response.data) {
         // Parse capabilities and update profiles
         console.log('Stream capabilities detected');
@@ -570,7 +582,7 @@ export class StreamingManager {
     url: string,
     data?: string
   ): Promise<{ success: boolean; data?: string; statusCode?: number }> {
-    
+
     return new Promise((resolve) => {
       const options: request.Options = {
         url,

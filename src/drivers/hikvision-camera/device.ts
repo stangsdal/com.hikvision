@@ -562,16 +562,6 @@ interface ConfigurationBackup {
   };
 }
 
-/**
- * Advanced configuration manager
- */
-interface ConfigurationManager {
-  schema: ConfigurationSchema;
-  currentConfig: any;
-  backups: ConfigurationBackup[];
-  validationCache: Map<string, ConfigurationValidationResult>;
-  migrationHistory: ConfigMigrationHandler[];
-}
 
 /**
  * Configuration export/import options
@@ -741,18 +731,6 @@ interface CoordinatedAction {
   startedAt?: number;
   completedAt?: number;
   results?: Map<string, unknown>;
-}
-
-/**
- * System integration manager
- */
-interface SystemIntegrationManager {
-  messageQueue: SystemMessage[];
-  orchestrationRules: OrchestrationRule[];
-  discoveredDevices: Map<string, DeviceDiscovery>;
-  healthAggregator: SystemHealthAggregator;
-  coordinatedActions: Map<string, CoordinatedAction>;
-  messageHandlers: Map<string, (message: SystemMessage) => void>;
 }
 
 class HikvisionCameraDevice extends Homey.Device {
@@ -1156,9 +1134,9 @@ class HikvisionCameraDevice extends Homey.Device {
     return new Promise((resolve, reject) => {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       const snapshotUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/Streaming/channels/${this.settings.channel}01/picture?snapShotImageType=JPEG`;
-      
+
       this.log(`Getting camera snapshot from channel ${this.settings.channel}`);
-      
+
       request.get({
         url: snapshotUrl,
         encoding: null, // Important: get raw buffer data
@@ -1231,7 +1209,7 @@ class HikvisionCameraDevice extends Homey.Device {
       // Set as both named camera image and main camera image for live viewing
       await this.setCameraImage('camera_main', `${this.settings.name} (Main)`, this.mainImage);
       await this.setCameraImage('main', `${this.settings.name}`, this.mainImage); // Default camera image
-      
+
       this.log('Main camera stream setup completed');
     } catch (error) {
       this.error('Error setting up main stream:', error);
@@ -2516,7 +2494,7 @@ class HikvisionCameraDevice extends Homey.Device {
       const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
       // Test NVR connection first - if NVR is online, cameras through it should be accessible
       const testUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}/ISAPI/System/deviceInfo`;
-      
+
       this.log(`Testing camera ${this.settings.channel} connection via NVR: ${testUrl}`);
 
       const timeoutId = setTimeout(() => {

@@ -1,18 +1,67 @@
 /**
- * PTZ (Pan-Tilt-Zoom) Management Module
- * Handles all PTZ operations, preset management, and position tracking
+ * PTZ (Pan-Tilt-Zoom) Management Module for Hikvision Cameras
+ *
+ * This module provides comprehensive PTZ control capabilities including:
+ * - Real-time camera movement control (Pan, Tilt, Zoom)
+ * - Preset position management and navigation
+ * - Position tracking and validation
+ * - Named preset creation and deletion
+ * - PTZ capability detection and configuration
+ *
+ * @fileoverview PTZ control and preset management for Hikvision cameras
+ * @version 1.0.0
+ * @author Your Name <your.email@example.com>
+ * @since 1.0.0
  */
 
 import request = require('request');
 import { PTZPreset, PTZPresetManager } from '../shared/camera-types';
 
+/**
+ * PTZ Manager Class
+ *
+ * Provides comprehensive Pan-Tilt-Zoom control for Hikvision cameras including
+ * movement control, preset management, and position tracking.
+ *
+ * @class PTZManager
+ * @example
+ * ```typescript
+ * const ptzManager = new PTZManager('http://192.168.1.100', {
+ *   username: 'admin',
+ *   password: 'password'
+ * });
+ *
+ * await ptzManager.initialize();
+ *
+ * // Move camera
+ * await ptzManager.controlPTZ(10, -5, 0); // Pan right, tilt down slightly
+ *
+ * // Go to preset
+ * await ptzManager.goToPreset(1);
+ * ```
+ */
 export class PTZManager {
+  /** Map of available PTZ presets indexed by preset number */
   private presets: Map<number, PTZPreset> = new Map();
+
+  /** Current camera position if available */
   private currentPosition: { pan: number; tilt: number; zoom: number } | null = null;
+
+  /** Maximum number of presets supported by Hikvision cameras */
   private readonly maxPresets: number = 255;
+
+  /** Base URL for the camera API */
   private readonly baseUrl: string;
+
+  /** Authentication credentials for camera access */
   private readonly auth: { username: string; password: string };
 
+  /**
+   * Create a new PTZ Manager instance
+   *
+   * @param baseUrl - Base URL of the camera (e.g., 'http://192.168.1.100')
+   * @param auth - Authentication credentials for camera access
+   */
   constructor(baseUrl: string, auth: { username: string; password: string }) {
     this.baseUrl = baseUrl;
     this.auth = auth;
@@ -32,7 +81,7 @@ export class PTZManager {
   async controlPTZ(pan: number, tilt: number, zoom: number): Promise<boolean> {
     try {
       const ptzUrl = `${this.baseUrl}/ISAPI/PTZCtrl/channels/1/continuous`;
-      
+
       const ptzData = `
         <PTZData>
           <pan>${Math.max(-100, Math.min(100, pan))}</pan>
@@ -42,7 +91,7 @@ export class PTZManager {
       `;
 
       const response = await this.makeAuthenticatedRequest('PUT', ptzUrl, ptzData);
-      
+
       if (response.success) {
         // Update current position estimate
         if (this.currentPosition) {
@@ -104,7 +153,7 @@ export class PTZManager {
 
       if (response.success) {
         await this.getCurrentPosition();
-        
+
         const preset: PTZPreset = {
           id: presetNumber,
           name: name || `Preset ${presetNumber}`,
@@ -131,7 +180,7 @@ export class PTZManager {
     try {
       // First, set the preset at current position
       const setSuccess = await this.setPreset(presetId, name);
-      
+
       if (setSuccess && this.currentPosition) {
         // Update the preset with additional metadata
         const preset: PTZPreset = {
@@ -207,14 +256,14 @@ export class PTZManager {
       if (response.success && response.data) {
         // Parse XML response to extract position
         const positionMatch = response.data.match(/<pan>(.*?)<\/pan>.*<tilt>(.*?)<\/tilt>.*<zoom>(.*?)<\/zoom>/s);
-        
+
         if (positionMatch) {
           this.currentPosition = {
             pan: parseFloat(positionMatch[1]) || 0,
             tilt: parseFloat(positionMatch[2]) || 0,
             zoom: parseFloat(positionMatch[3]) || 0
           };
-          
+
           return this.currentPosition;
         }
       }
@@ -273,11 +322,11 @@ export class PTZManager {
       // This would typically query the camera for existing presets
       // For now, we'll initialize with an empty set
       this.presets.clear();
-      
+
       // TODO: Implement actual preset loading from camera
       // const presetsUrl = `${this.baseUrl}/ISAPI/PTZCtrl/channels/1/presets`;
       // const response = await this.makeAuthenticatedRequest('GET', presetsUrl);
-      
+
     } catch (error) {
       console.error('Failed to load existing presets:', error);
     }
@@ -291,7 +340,7 @@ export class PTZManager {
     url: string,
     data?: string
   ): Promise<{ success: boolean; data?: string; statusCode?: number }> {
-    
+
     return new Promise((resolve) => {
       const options: request.Options = {
         url,

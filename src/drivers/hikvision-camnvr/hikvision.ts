@@ -96,13 +96,13 @@ export class HikvisionApi extends EventEmitter {
     // Handle alarms
     private handleData(self: HikvisionApi, data: Buffer): void {
         const dataStr = data.toString();
-        
+
         // Extract XML content from multipart stream
         // Hikvision sends multipart data with HTTP headers, boundaries, and other content
         // We need to find and extract only the clean XML part
-        
+
         let xmlContent: string;
-        
+
         // Look for XML declaration and complete EventNotificationAlert
         const xmlMatch = dataStr.match(/<\?xml[\s\S]*?<\/EventNotificationAlert>/);
         if (!xmlMatch) {
@@ -117,10 +117,10 @@ export class HikvisionApi extends EventEmitter {
         } else {
             xmlContent = xmlMatch[0];
         }
-        
+
         // Clean up any potential issues that might break XML parsing
         const cleanXmlContent = xmlContent.trim();
-        
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         parser.parseString(cleanXmlContent, (err: Error | null, result: any) => {
             if (err) {
@@ -128,7 +128,7 @@ export class HikvisionApi extends EventEmitter {
                 console.log('XML parsing error (ignoring):', err.message);
                 return;
             }
-            
+
             if (result && result['EventNotificationAlert'] !== undefined) {
                 let code = result['EventNotificationAlert']['eventType'][0];
                 let action = result['EventNotificationAlert']['eventState'][0];

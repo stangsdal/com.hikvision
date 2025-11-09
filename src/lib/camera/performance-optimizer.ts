@@ -1,6 +1,17 @@
 /**
- * Performance Optimization Module
- * Handles memory management, connection pooling, and resource monitoring
+ * Performance Optimization Module for Hikvision Camera Integration
+ *
+ * This module provides comprehensive performance optimization capabilities including:
+ * - Memory management and garbage collection
+ * - Connection pooling and resource reuse
+ * - Real-time resource monitoring and alerting
+ * - Image and stream caching with automatic cleanup
+ * - Performance metrics tracking and reporting
+ *
+ * @fileoverview Core performance optimization system for camera operations
+ * @version 1.0.0
+ * @author Your Name <your.email@example.com>
+ * @since 1.0.0
  */
 
 import {
@@ -11,15 +22,53 @@ import {
     ResourceMonitor
 } from '../shared/camera-types';
 
+/**
+ * Performance Optimizer Class
+ *
+ * Provides comprehensive performance optimization for Hikvision camera operations including
+ * memory management, connection pooling, caching, and real-time resource monitoring.
+ *
+ * @class PerformanceOptimizer
+ * @example
+ * ```typescript
+ * const optimizer = new PerformanceOptimizer();
+ * await optimizer.initialize();
+ *
+ * // Cache camera image
+ * await optimizer.cacheImage('camera1_main', imageBuffer);
+ *
+ * // Get cached image
+ * const cachedImage = optimizer.getCachedImage('camera1_main');
+ * ```
+ */
 export class PerformanceOptimizer {
+  /** Memory management configuration and state */
   private memoryManager: MemoryManager;
+
+  /** Connection pool for HTTP requests optimization */
   private connectionPool: ConnectionPool;
+
+  /** Resource monitoring configuration and metrics */
   private resourceMonitor: ResourceMonitor;
+
+  /** Cache for camera images with automatic expiration */
   private imageCache: Map<string, CacheEntry<Buffer>> = new Map();
+
+  /** Cache for streaming URLs and configurations */
   private streamCache: Map<string, CacheEntry<string>> = new Map();
+
+  /** Interval for performance monitoring checks */
   private monitoringInterval: ReturnType<typeof setInterval> | null = null;
+
+  /** Interval for automatic optimization routines */
   private optimizationInterval: ReturnType<typeof setInterval> | null = null;
 
+  /**
+   * Initialize the Performance Optimizer with default configurations
+   *
+   * Sets up memory management limits, connection pooling parameters,
+   * and resource monitoring thresholds optimized for Hikvision cameras.
+   */
   constructor() {
     this.memoryManager = {
       maxMemoryUsage: 100 * 1024 * 1024, // 100MB
@@ -172,7 +221,7 @@ export class PerformanceOptimizer {
    */
   getConnection(url: string): PooledConnection | null {
     const existing = this.connectionPool.connections.get(url);
-    
+
     if (existing && existing.isActive) {
       existing.lastUsed = Date.now();
       return existing;
@@ -210,7 +259,7 @@ export class PerformanceOptimizer {
 
     connection.lastUsed = Date.now();
     connection.requestCount++;
-    
+
     if (isError) {
       connection.errorCount++;
     }
@@ -241,7 +290,7 @@ export class PerformanceOptimizer {
       }
 
       this.connectionPool.lastCleanup = now;
-      
+
       if (cleanedCount > 0) {
         console.log(`Cleaned up ${cleanedCount} connections from pool`);
       }
@@ -257,12 +306,12 @@ export class PerformanceOptimizer {
     try {
       // Calculate current memory usage
       let totalCacheSize = 0;
-      
+
       // Image cache size
       for (const entry of this.imageCache.values()) {
         totalCacheSize += entry.size;
       }
-      
+
       // Stream cache size
       for (const entry of this.streamCache.values()) {
         totalCacheSize += entry.size;
@@ -344,7 +393,7 @@ export class PerformanceOptimizer {
    */
   private updateResourceMetrics(): void {
     const now = Date.now();
-    
+
     const metrics = {
       timestamp: now,
       memory: (this.memoryManager.currentUsage / this.memoryManager.maxMemoryUsage) * 100,
@@ -391,10 +440,10 @@ export class PerformanceOptimizer {
     // Clear all caches
     const imageCacheSize = this.imageCache.size;
     const streamCacheSize = this.streamCache.size;
-    
+
     this.imageCache.clear();
     this.streamCache.clear();
-    
+
     // Reset connection pool
     this.resetConnectionPool();
 
@@ -481,7 +530,7 @@ export class PerformanceOptimizer {
 
     if (config.resourceMonitor) {
       this.resourceMonitor = { ...this.resourceMonitor, ...config.resourceMonitor };
-      
+
       // Restart monitoring if interval changed
       if (config.resourceMonitor.checkInterval) {
         this.startResourceMonitoring();

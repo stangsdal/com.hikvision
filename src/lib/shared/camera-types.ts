@@ -1,6 +1,19 @@
 /**
- * Shared interfaces and types for Hikvision Camera functionality
- * Extracted from the monolithic device.ts for better maintainability
+ * Comprehensive Type Definitions for Hikvision Camera Integration
+ *
+ * This module contains all TypeScript interfaces and type definitions used throughout
+ * the Hikvision camera integration. It provides type safety and documentation for:
+ * - Camera configuration and settings
+ * - PTZ control and preset management
+ * - Video streaming and quality profiles
+ * - Alarm and motion detection systems
+ * - Performance optimization and caching
+ * - Network and resource management
+ *
+ * @fileoverview Centralized type definitions for Hikvision camera functionality
+ * @version 1.0.0
+ * @author Your Name <your.email@example.com>
+ * @since 1.0.0
  */
 
 // Basic Camera Configuration
