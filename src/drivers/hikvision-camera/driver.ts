@@ -1,4 +1,6 @@
 import Homey = require('homey');
+import request = require('request');
+import xml2js = require('xml2js');
 
 class HikvisionCameraDriver extends Homey.Driver {
 
@@ -175,19 +177,93 @@ class HikvisionCameraDriver extends Homey.Driver {
   }
 
   /**
-   * Discover cameras from existing NVR devices (simplified implementation for Phase 4)
+   * Discover cameras from existing NVR devices using real camera names from InputProxy API
    */
   private async discoverCameras(): Promise<object[]> {
     try {
-      this.log('Auto-discovery: Preparing camera list for pairing...');
+      this.log('Auto-discovery: Retrieving actual camera names from NVR...');
 
-      // For Phase 4, provide pre-configured camera options that users can select
-      // This simulates discovery and allows users to easily add cameras
+      // Get actual camera information from NVR (names and online status)
+      const connectedCameras = await this.getConnectedCamerasFromNVR();
       const cameraOptions: object[] = [];
 
-      // Generate camera options for channels 1-16 (common NVR setup)
-      for (let channel = 1; channel <= 16; channel++) {
-        cameraOptions.push({
+      // Create camera options only for connected cameras
+      for (const camera of connectedCameras) {
+        if (camera.online && camera.name && camera.name.trim() !== '') {
+          cameraOptions.push({
+            name: `${camera.name} (Channel ${camera.channel})`,
+            data: {
+              id: `camera_${camera.channel}_${camera.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`
+            },
+            settings: {
+              channel: camera.channel,
+              name: camera.name,
+              nvrDeviceId: 'auto-configured', // Will be set during pairing
+              nvrAddress: '192.168.10.140', // Default NVR address
+              nvrPort: 80,
+              nvrSsl: false,
+              nvrStrict: false,
+              nvrUsername: 'admin',
+              nvrPassword: 'ZmartifyGold',
+              streamQuality: 'high',
+              streamResolution: '1920x1080',
+              refreshRate: 5,
+              enableSubStream: true,
+              snapshotResolution: 'high',
+              enableAlarmForwarding: true,
+              motionSensitivity: 'medium',
+              autoSnapshot: true,
+              alarmCooldown: 5
+            },
+            capabilities: ['camera_status', 'motion_detected', 'recording_status', 'stream_quality', 'connection_strength', 'ptz_position', 'alarm_state', 'last_alarm']
+          });
+        }
+      }
+
+      // If no connected cameras found, fall back to generic naming for manual configuration
+      if (cameraOptions.length === 0) {
+        this.log('No connected cameras found on NVR, providing generic options for manual configuration...');
+        for (let channel = 1; channel <= 6; channel++) {
+          cameraOptions.push({
+            name: `Camera ${channel} (Channel ${channel})`,
+            data: {
+              id: `auto_camera_${channel}`
+            },
+            settings: {
+              channel: channel,
+              name: `Camera ${channel}`,
+              nvrDeviceId: 'auto-configured',
+              nvrAddress: '192.168.10.140',
+              nvrPort: 80,
+              nvrSsl: false,
+              nvrStrict: false,
+              nvrUsername: 'admin',
+              nvrPassword: 'ZmartifyGold',
+              streamQuality: 'high',
+              streamResolution: '1920x1080',
+              refreshRate: 5,
+              enableSubStream: true,
+              snapshotResolution: 'high',
+              enableAlarmForwarding: true,
+              motionSensitivity: 'medium',
+              autoSnapshot: true,
+              alarmCooldown: 5
+            },
+            capabilities: ['camera_status', 'motion_detected', 'recording_status', 'stream_quality', 'connection_strength', 'ptz_position', 'alarm_state', 'last_alarm']
+          });
+        }
+      }
+
+      this.log(`Auto-discovery: Found ${cameraOptions.length} connected cameras on NVR`);
+      return cameraOptions;
+
+    } catch (error) {
+      this.log(`Error during camera discovery from NVR, using fallback: ${String(error)}`);
+      
+      // Fallback to generic names if NVR discovery fails
+      const fallbackOptions: object[] = [];
+      for (let channel = 1; channel <= 6; channel++) {
+        fallbackOptions.push({
           name: `Camera ${channel} (Channel ${channel})`,
           data: {
             id: `auto_camera_${channel}`
@@ -195,13 +271,13 @@ class HikvisionCameraDriver extends Homey.Driver {
           settings: {
             channel: channel,
             name: `Camera ${channel}`,
-            nvrDeviceId: 'auto-configured', // Will be set during pairing
-            nvrAddress: '192.168.10.140', // Updated default to match your NVR
+            nvrDeviceId: 'auto-configured',
+            nvrAddress: '192.168.10.140',
             nvrPort: 80,
             nvrSsl: false,
             nvrStrict: false,
             nvrUsername: 'admin',
-            nvrPassword: 'ZmartGold2018',
+            nvrPassword: 'ZmartifyGold',
             streamQuality: 'high',
             streamResolution: '1920x1080',
             refreshRate: 5,
@@ -215,14 +291,151 @@ class HikvisionCameraDriver extends Homey.Driver {
           capabilities: ['camera_status', 'motion_detected', 'recording_status', 'stream_quality', 'connection_strength', 'ptz_position', 'alarm_state', 'last_alarm']
         });
       }
-
-      this.log(`Auto-discovery: Generated ${cameraOptions.length} camera options for user selection`);
-      return cameraOptions;
-
-    } catch {
-      this.log('Error during camera auto-discovery');
-      return [];
+      
+      return fallbackOptions;
     }
+  }
+
+  /**
+   * Get camera information from NVR InputProxy API - names and online status
+   */
+  private async getConnectedCamerasFromNVR(): Promise<Array<{ channel: number; name: string; online: boolean }>> {
+    const parser = new xml2js.Parser();
+
+    return new Promise((resolve) => {
+      const protocol = 'http://'; // Default settings
+      const nvrAddress = '192.168.10.140';
+      const nvrPort = 80;
+      const nvrUsername = 'admin';
+      const nvrPassword = 'ZmartifyGold';
+
+      // First get camera names
+      request(
+        {
+          url: `${protocol}${nvrAddress}:${nvrPort}/ISAPI/ContentMgmt/InputProxy/channels`,
+          strictSSL: false,
+          rejectUnauthorized: false
+        },
+        (error: unknown, response: { statusCode: number } | null, body: string) => {
+          if (error || !response || response.statusCode !== 200) {
+            this.log('Failed to get camera names from NVR InputProxy API');
+            resolve([]);
+          } else {
+            try {
+              parser.parseString(body, (err: unknown, result: Record<string, unknown>) => {
+                if (err || !result) {
+                  resolve([]);
+                  return;
+                }
+
+                const cameraNames: string[] = [];
+
+                const inputProxyChannelList = result['InputProxyChannelList'] as Record<string, unknown>;
+                if (inputProxyChannelList && inputProxyChannelList['InputProxyChannel']) {
+                  const channels = inputProxyChannelList['InputProxyChannel'];
+                  const channelArray = Array.isArray(channels) ? channels : [channels];
+
+                  for (const channel of channelArray) {
+                    if (channel.id && channel.name) {
+                      const channelId = Array.isArray(channel.id) ? channel.id[0] : channel.id;
+                      const rawChannelName = Array.isArray(channel.name) ? channel.name[0] : channel.name;
+                      
+                      // Handle both string and array formats from xml2js parsing
+                      const channelName = typeof rawChannelName === 'string' ? rawChannelName.trim() : '';
+
+                      if (channelName && channelName !== '') {
+                        cameraNames[parseInt(channelId)] = channelName;
+                      } else {
+                        // Use generic name if camera name is empty
+                        cameraNames[parseInt(channelId)] = `Camera ${channelId}`;
+                      }
+                    }
+                  }
+                }
+
+                // Now get online status for cameras
+                this.getCameraOnlineStatus(protocol, nvrAddress, nvrPort, nvrUsername, nvrPassword, cameraNames)
+                  .then(resolve)
+                  .catch(() => resolve([]));
+              });
+            } catch (parseError) {
+              this.log(`Error parsing NVR camera names: ${String(parseError)}`);
+              resolve([]);
+            }
+          }
+        }
+      ).auth(nvrUsername, nvrPassword, false);
+    });
+  }
+
+  /**
+   * Get camera online status from NVR (same logic as NVR device)
+   */
+  private async getCameraOnlineStatus(
+    protocol: string,
+    nvrAddress: string,
+    nvrPort: number,
+    nvrUsername: string,
+    nvrPassword: string,
+    cameraNames: string[]
+  ): Promise<Array<{ channel: number; name: string; online: boolean }>> {
+    const parser = new xml2js.Parser();
+
+    return new Promise((resolve) => {
+      // Get camera online status
+      request(
+        {
+          url: `${protocol}${nvrAddress}:${nvrPort}/ISAPI/ContentMgmt/InputProxy/channels/status`,
+          strictSSL: false,
+          rejectUnauthorized: false
+        },
+        (error: unknown, response: { statusCode: number } | null, body: string) => {
+          if (error || !response || response.statusCode !== 200) {
+            this.log('Failed to get camera status from NVR - assuming all cameras offline');
+            resolve([]);
+          } else {
+            try {
+              parser.parseString(body, (err: unknown, result: Record<string, unknown>) => {
+                if (err || !result) {
+                  this.log('Failed to parse camera status - assuming all cameras offline');
+                  resolve([]);
+                  return;
+                }
+
+                const connectedCameras: Array<{ channel: number; name: string; online: boolean }> = [];
+
+                const statusList = result['InputProxyChannelStatusList'] as Record<string, unknown>;
+                if (statusList && statusList['InputProxyChannelStatus']) {
+                  const channels = statusList['InputProxyChannelStatus'];
+                  const channelArray = Array.isArray(channels) ? channels : [channels];
+
+                  for (const status of channelArray) {
+                    if (status.id && status.online) {
+                      const channelId = parseInt(Array.isArray(status.id) ? status.id[0] : status.id);
+                      const isOnline = (Array.isArray(status.online) ? status.online[0] : status.online) === 'true';
+
+                      if (isOnline && cameraNames[channelId]) {
+                        connectedCameras.push({
+                          channel: channelId,
+                          name: cameraNames[channelId],
+                          online: true
+                        });
+                      }
+                    }
+                  }
+                }
+
+                this.log(`Found ${connectedCameras.length} connected cameras on NVR`);
+                resolve(connectedCameras);
+              });
+            } catch (parseError) {
+              this.log(`Error parsing NVR status response: ${String(parseError)}`);
+              resolve([]);
+            }
+          }
+        }
+      ).auth(nvrUsername, nvrPassword, false);
+    });
   }
 
 

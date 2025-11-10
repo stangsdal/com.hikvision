@@ -2437,7 +2437,7 @@
   },
   "drivers": [
     {
-      "class": "sensor",
+      "class": "camera",
       "capabilities": [
         "camera_status",
         "motion_detected",
@@ -2844,7 +2844,7 @@
                 "nl": "Wachtwoord",
                 "de": "Passwort"
               },
-              "value": "ZmartGold2018",
+              "value": "ZmartifyGold",
               "hint": {
                 "en": "Password of the ip camera",
                 "nl": "Wachtwoord van de camera",

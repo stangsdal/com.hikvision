@@ -70,6 +70,7 @@ export interface StreamingStats {
   adaptations: number;
   lastAdaptation: number;
   buffering: boolean;
+  averageResponseTime: number;
 }
 
 export interface ConnectionStats {

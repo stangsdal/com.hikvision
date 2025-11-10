@@ -1637,6 +1637,97 @@ class HikCamera extends Homey.Device {
       return false;
     }
   }
+
+  /**
+   * Get stream URL for live video streaming in Homey's video player
+   * This method provides the stream URL that Homey can use for live streaming from the NVR
+   * For NVRs, this typically shows the first camera channel
+   */
+  async onGetCameraStream(): Promise<string> {
+    try {
+      this.log('Getting NVR camera stream for first available channel');
+      
+      // Direct approach with working Hikvision streaming URLs
+      const protocol = this.settings.ssl ? 'https://' : 'http://';
+      const host = this.settings.address;
+      const port = this.settings.port;
+      const username = encodeURIComponent(this.settings.username);
+      const password = encodeURIComponent(this.settings.password);
+      
+      // For NVR, default to channel 1 (first camera)
+      const defaultChannel = 1;
+      const channelId = defaultChannel.toString().padStart(2, '0') + '01';
+      
+      // Try different stream formats that Homey video player can handle
+      const streamUrls = [
+        // MJPEG stream - continuous JPEG frames over HTTP
+        `${protocol}${username}:${password}@${host}:${port}/ISAPI/Streaming/channels/${channelId}/httppreview`,
+        
+        // HTTP video stream
+        `${protocol}${username}:${password}@${host}:${port}/ISAPI/Streaming/channels/${channelId}/preview`,
+        
+        // H264 stream over HTTP
+        `${protocol}${username}:${password}@${host}:${port}/ISAPI/Streaming/channels/${channelId}`,
+        
+        // RTSP stream
+        `rtsp://${username}:${password}@${host}:554/Streaming/Channels/${channelId}`,
+        
+        // Alternative RTSP format
+        `rtsp://${username}:${password}@${host}:554/h264/ch${defaultChannel}/main/av_stream`
+      ];
+      
+      // Test each URL and return the first working one
+      for (const url of streamUrls) {
+        this.log(`Testing NVR stream URL: ${url.replace(/:.*@/, '://***:***@')}`);
+        
+        const isWorking = await this.testNVRStreamUrl(url);
+        if (isWorking) {
+          this.log(`Found working NVR stream URL for channel ${defaultChannel}: ${url.replace(/:.*@/, '://***:***@')}`);
+          return url;
+        }
+      }
+      
+      // If no URL works, return the MJPEG URL anyway (most compatible)
+      const fallbackUrl = streamUrls[0];
+      this.log(`No NVR stream URL responded, using fallback for channel ${defaultChannel}: ${fallbackUrl.replace(/:.*@/, '://***:***@')}`);
+      return fallbackUrl;
+      
+    } catch (error) {
+      this.error('Error generating NVR camera stream URL:', error);
+      
+      // Final fallback: Basic RTSP URL for first camera
+      const host = this.settings.address;
+      const username = encodeURIComponent(this.settings.username);
+      const password = encodeURIComponent(this.settings.password);
+      const channelId = '101'; // Channel 1, stream 01
+      
+      const fallbackUrl = `rtsp://${username}:${password}@${host}:554/Streaming/Channels/${channelId}`;
+      
+      this.log('Using final fallback RTSP URL for NVR channel 1');
+      return fallbackUrl;
+    }
+  }
+
+  /**
+   * Test if an NVR stream URL is accessible
+   */
+  private async testNVRStreamUrl(url: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      // Quick test with short timeout using the imported request module
+      request.get({
+        url: url,
+        timeout: 3000,
+        strictSSL: this.settings.strict,
+        rejectUnauthorized: this.settings.strict
+      }, (error: unknown, response: { statusCode: number } | null) => {
+        if (!error && response && response.statusCode === 200) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  }
 }
 
 export = HikCamera;

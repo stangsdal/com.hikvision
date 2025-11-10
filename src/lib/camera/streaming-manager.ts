@@ -72,7 +72,8 @@ export class StreamingManager {
       currentQuality: settings.streamQuality,
       adaptations: 0,
       lastAdaptation: 0,
-      buffering: false
+      buffering: false,
+      averageResponseTime: 0
     };
 
     this.initializeStreamProfiles();
@@ -290,6 +291,71 @@ export class StreamingManager {
       await this.makeAuthenticatedRequest('PUT', configUrl, streamConfig);
     } catch (error) {
       console.error('Configure sub-stream failed:', error);
+    }
+  }
+
+  /**
+   * Generate RTSP stream URL for live streaming
+   *
+   * @param channel - Camera channel number (1-based)
+   * @param streamType - 'main' for high quality, 'sub' for lower quality
+   * @param useSSL - Whether to use secure RTSPS protocol
+   * @returns Complete RTSP URL for Homey video player
+   */
+  generateRtspUrl(channel: number, streamType: 'main' | 'sub' = 'main', useSSL: boolean = false): string {
+    const protocol = useSSL ? 'rtsps://' : 'rtsp://';
+    const streamId = streamType === 'main' ? '01' : '02';
+    const channelId = channel.toString().padStart(2, '0') + streamId;
+
+    // Extract host and port from baseUrl
+    const urlParts = this.baseUrl.replace(/^https?:\/\//, '').split(':');
+    const host = urlParts[0];
+    const rtspPort = useSSL ? 322 : 554; // Standard RTSP ports
+
+    // Encode credentials for URL
+    const encodedUser = encodeURIComponent(this.auth.username);
+    const encodedPass = encodeURIComponent(this.auth.password);
+
+    return `${protocol}${encodedUser}:${encodedPass}@${host}:${rtspPort}/Streaming/Channels/${channelId}`;
+  }
+
+  /**
+   * Get RTSP stream URLs for all quality profiles
+   *
+   * @param channel - Camera channel number
+   * @returns Object with RTSP URLs for different quality levels
+   */
+  getRtspStreams(channel: number): {
+    main: string;
+    sub: string;
+    mainSecure: string;
+    subSecure: string;
+  } {
+    return {
+      main: this.generateRtspUrl(channel, 'main', false),
+      sub: this.generateRtspUrl(channel, 'sub', false),
+      mainSecure: this.generateRtspUrl(channel, 'main', true),
+      subSecure: this.generateRtspUrl(channel, 'sub', true)
+    };
+  }
+
+  /**
+   * Get optimized RTSP URL based on current network conditions
+   *
+   * @param channel - Camera channel number
+   * @returns Best RTSP URL for current conditions
+   */
+  getOptimizedRtspUrl(channel: number): string {
+    if (!this.adaptiveConfig.enabled) {
+      return this.generateRtspUrl(channel, 'main');
+    }
+
+    // Use adaptive logic to choose stream quality
+    const networkQuality = this.assessNetworkQuality();
+    if (networkQuality < 0.3) {
+      return this.generateRtspUrl(channel, 'sub'); // Low quality for poor network
+    } else {
+      return this.generateRtspUrl(channel, 'main'); // High quality for good network
     }
   }
 
@@ -554,6 +620,24 @@ export class StreamingManager {
     const now = Date.now();
     const timeDiff = now - (this.streamingStats.lastAdaptation || now - 1000);
     this.streamingStats.averageBitrate = (this.streamingStats.bytesReceived * 8 * 1000) / timeDiff;
+  }
+
+  /**
+   * Assess current network quality for adaptive streaming
+   *
+   * @returns Network quality score (0.0 = poor, 1.0 = excellent)
+   */
+  private assessNetworkQuality(): number {
+    // Calculate network quality based on streaming statistics
+    const errorRate = this.streamingStats.dropRate || 0;
+    const responseTime = this.streamingStats.averageResponseTime || 0;
+
+    // Quality factors (0-1 scale)
+    const errorQuality = Math.max(0, 1 - (errorRate * 10)); // 10% error = 0 quality
+    const responseQuality = Math.max(0, 1 - (responseTime / 2000)); // 2s response = 0 quality
+
+    // Weighted average
+    return (errorQuality * 0.7) + (responseQuality * 0.3);
   }
 
   /**

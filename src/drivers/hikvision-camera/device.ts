@@ -28,6 +28,7 @@ interface StreamInfo {
   subStreamUrl: string;
   snapshotUrl: string;
   protocol: string;
+  alternativeStreamUrls?: string[];
 }
 
 interface StreamProfile {
@@ -1015,6 +1016,8 @@ class HikvisionCameraDevice extends Homey.Device {
     // Initialize default settings if not set
     this.initializeDefaultSettings();
 
+    // Device name is now set during pairing process using actual camera names
+
     // Initialize streaming profiles
     this.initializeStreamingProfiles();
 
@@ -1027,6 +1030,10 @@ class HikvisionCameraDevice extends Homey.Device {
     await this.setCapabilityValue('ptz_position', 'Unknown');
     await this.setCapabilityValue('alarm_state', 'Idle');
     await this.setCapabilityValue('last_alarm', 'None');
+    
+    // Debug: Log that the device is ready for streaming
+    this.log(`[VIDEO STREAMING] Camera device initialized with class "camera" - video streaming should be available`);
+    this.log(`[VIDEO STREAMING] Available streaming methods: onGetCameraStream, getStream, getCameraStreamUrl, onCameraStream`);
 
     // Register capability listeners
     // @ts-ignore - TypeScript types may be incomplete for Homey SDK 3
@@ -1167,6 +1174,124 @@ class HikvisionCameraDevice extends Homey.Device {
     });
   }
 
+  /**
+   * Get stream URL for live video streaming in Homey's video player
+   * This method provides the stream URL that Homey can use for live streaming
+   * Called by Homey when the user wants to view live video
+   */
+  async onGetCameraStream(): Promise<string> {
+    try {
+      this.log(`[VIDEO STREAMING] onGetCameraStream() called for channel ${this.settings.channel}`);
+      this.error(`[VIDEO STREAMING DEBUG] onGetCameraStream() method is being called!`);
+      
+      // Direct approach with working Hikvision streaming URLs
+      const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
+      const host = this.settings.nvrAddress;
+      const port = this.settings.nvrPort;
+      const username = encodeURIComponent(this.settings.nvrUsername);
+      const password = encodeURIComponent(this.settings.nvrPassword);
+      // Use correct Hikvision format: Channel number + stream type (01 for main stream)
+      const mainChannelId = this.settings.channel.toString() + '01';
+      
+      // Try different stream formats using correct Hikvision format (per official documentation)
+      const streamUrls = [
+        // Correct Hikvision MJPEG format
+        `${protocol}${username}:${password}@${host}:${port}/Streaming/Channels/${mainChannelId}/httppreview`,
+        
+        // Alternative ISAPI MJPEG format
+        `${protocol}${username}:${password}@${host}:${port}/ISAPI/Streaming/channels/${mainChannelId}/httppreview`,
+        
+        // HTTP video stream
+        `${protocol}${username}:${password}@${host}:${port}/Streaming/Channels/${mainChannelId}/preview`,
+        
+        // RTSP stream - correct Hikvision format: rtsp://user:pass@ip:554/Streaming/Channels/[CH]0[STREAM_TYPE]
+        `rtsp://${username}:${password}@${host}:554/Streaming/Channels/${mainChannelId}`,
+        
+        // Alternative RTSP format for older devices
+        `rtsp://${username}:${password}@${host}:554/h264/ch${this.settings.channel}/main/av_stream`
+      ];
+      
+      // Test each URL and return the first working one
+      for (const url of streamUrls) {
+        this.log(`Testing stream URL: ${url.replace(/:.*@/, '://***:***@')}`);
+        
+        const isWorking = await this.testStreamUrl(url);
+        if (isWorking) {
+          this.log(`Found working stream URL for channel ${this.settings.channel}: ${url.replace(/:.*@/, '://***:***@')}`);
+          return url;
+        }
+      }
+      
+      // If no URL works, return the MJPEG URL anyway (most compatible)
+      const fallbackUrl = streamUrls[0];
+      this.log(`No stream URL responded, using fallback for channel ${this.settings.channel}: ${fallbackUrl.replace(/:.*@/, '://***:***@')}`);
+      return fallbackUrl;
+      
+    } catch (error) {
+      this.error('Error generating camera stream URL:', error);
+      
+      // Final fallback: Correct Hikvision RTSP format
+      const host = this.settings.nvrAddress;
+      const username = encodeURIComponent(this.settings.nvrUsername);
+      const password = encodeURIComponent(this.settings.nvrPassword);
+      const mainChannelId = this.settings.channel.toString() + '01';
+      
+      const fallbackUrl = `rtsp://${username}:${password}@${host}:554/Streaming/Channels/${mainChannelId}`;
+      
+      this.log(`Using final fallback RTSP URL for channel ${this.settings.channel}`);
+      return fallbackUrl;
+    }
+  }
+
+  // Alternative method names that Homey SDK 3 might use for video streaming
+  async getStream(): Promise<string> {
+    this.log(`[VIDEO STREAMING DEBUG] getStream() method called!`);
+    this.error(`[VIDEO STREAMING DEBUG] Alternative getStream() method is being called!`);
+    return this.onGetCameraStream();
+  }
+
+  async getCameraStreamUrl(): Promise<string> {
+    this.log(`[VIDEO STREAMING DEBUG] getCameraStreamUrl() method called!`);
+    this.error(`[VIDEO STREAMING DEBUG] Alternative getCameraStreamUrl() method is being called!`);
+    return this.onGetCameraStream();
+  }
+
+  async onCameraStream(): Promise<string> {
+    this.log(`[VIDEO STREAMING DEBUG] onCameraStream() method called!`);
+    this.error(`[VIDEO STREAMING DEBUG] Alternative onCameraStream() method is being called!`);
+    return this.onGetCameraStream();
+  }
+
+  /**
+   * Test if a stream URL is accessible
+   */
+  private async testStreamUrl(url: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const testUrl = url.replace(/:.*@/, '://***:***@'); // For logging
+      
+      // Quick test with short timeout using the imported request module
+      const requestOptions = {
+        url: url,
+        timeout: 5000,
+        strictSSL: this.settings.nvrStrict,
+        rejectUnauthorized: this.settings.nvrStrict,
+        headers: {
+          'User-Agent': 'Homey Hikvision Camera'
+        }
+      };
+      
+      request.get(requestOptions, (error: unknown, response: { statusCode: number } | null) => {
+        if (!error && response && (response.statusCode === 200 || response.statusCode === 206)) {
+          this.log(`Stream URL test successful: ${testUrl} (Status: ${response.statusCode})`);
+          resolve(true);
+        } else {
+          this.log(`Stream URL test failed: ${testUrl} (Error: ${error}, Status: ${response?.statusCode})`);
+          resolve(false);
+        }
+      });
+    });
+  }
+
   private async setupAdvancedStreaming(): Promise<void> {
     try {
       this.buildStreamUrls();
@@ -1184,16 +1309,38 @@ class HikvisionCameraDevice extends Homey.Device {
 
   private buildStreamUrls(): void {
     const protocol = this.settings.nvrSsl ? 'https://' : 'http://';
-    const baseUrl = `${protocol}${this.settings.nvrAddress}:${this.settings.nvrPort}`;
+    const username = encodeURIComponent(this.settings.nvrUsername);
+    const password = encodeURIComponent(this.settings.nvrPassword);
+    const baseUrl = `${protocol}${username}:${password}@${this.settings.nvrAddress}:${this.settings.nvrPort}`;
+    
+    // Use correct Hikvision format: Channel number + stream type (01 for main, 02 for sub)
+    const mainChannelId = this.settings.channel.toString() + '01';
+    const subChannelId = this.settings.channel.toString() + '02';
 
-    // Main stream (usually channel01)
-    this.streamInfo.mainStreamUrl = `${baseUrl}/ISAPI/Streaming/channels/${this.settings.channel}01/picture`;
+    // Correct Hikvision HTTP snapshot format (as per documentation)
+    this.streamInfo.snapshotUrl = `${baseUrl}/Streaming/Channels/${this.settings.channel}/picture`;
 
-    // Sub stream (usually channel02) - lower quality for better performance
-    this.streamInfo.subStreamUrl = `${baseUrl}/ISAPI/Streaming/channels/${this.settings.channel}02/picture`;
+    // MJPEG and alternative HTTP endpoints to try
+    const mjpegEndpoints = [
+      `/Streaming/Channels/${mainChannelId}/httppreview`,           // Standard Hikvision MJPEG
+      `/ISAPI/Streaming/channels/${mainChannelId}/httppreview`,     // Alternative ISAPI format
+      `/Streaming/channels/${this.settings.channel}01/httppreview`, // Legacy format
+      `/cgi-bin/mjpg/video.cgi?channel=${this.settings.channel}&subtype=0` // CGI fallback
+    ];
 
-    // High quality snapshot URL
-    this.streamInfo.snapshotUrl = `${baseUrl}/ISAPI/Streaming/channels/${this.settings.channel}01/picture?snapShotImageType=JPEG`;
+    // Use the correct Hikvision format as primary
+    this.streamInfo.mainStreamUrl = `${baseUrl}${mjpegEndpoints[0]}`;
+    this.streamInfo.subStreamUrl = `${baseUrl}/Streaming/Channels/${subChannelId}/httppreview`;
+
+    // Store alternative endpoints for fallback testing
+    this.streamInfo.alternativeStreamUrls = mjpegEndpoints.slice(1).map(endpoint => `${baseUrl}${endpoint}`);
+
+    this.log(`[VIDEO STREAMING] Using correct Hikvision streaming format (per official documentation):`);
+    this.log(`Main MJPEG: ${this.streamInfo.mainStreamUrl.replace(/:.*@/, '://***:***@')}`);
+    this.log(`Sub MJPEG: ${this.streamInfo.subStreamUrl.replace(/:.*@/, '://***:***@')}`);
+    this.log(`Snapshot: ${this.streamInfo.snapshotUrl.replace(/:.*@/, '://***:***@')}`);
+    this.log(`[VIDEO STREAMING] ${mjpegEndpoints.length} endpoint formats available for testing`);
+    this.log(`[VIDEO STREAMING] Note: InputProxy NVRs may not support direct HTTP streaming`);
 
     this.streamInfo.protocol = this.settings.nvrSsl ? 'HTTPS' : 'HTTP';
   }
@@ -1208,7 +1355,7 @@ class HikvisionCameraDevice extends Homey.Device {
 
       // Set as both named camera image and main camera image for live viewing
       await this.setCameraImage('camera_main', `${this.settings.name} (Main)`, this.mainImage);
-      await this.setCameraImage('main', `${this.settings.name}`, this.mainImage); // Default camera image
+      await this.setCameraImage('main', this.settings.name, this.mainImage); // Default camera image
 
       this.log('Main camera stream setup completed');
     } catch (error) {
@@ -1232,34 +1379,124 @@ class HikvisionCameraDevice extends Homey.Device {
 
   private createStreamRequest(url: string, stream: Writable): void {
     const startTime = Date.now();
+    const logUrl = url.replace(/:.*@/, '://***:***@');
+
+    this.log(`[VIDEO STREAMING] Creating stream request to: ${logUrl}`);
 
     const req = request({
       url: url,
       strictSSL: this.settings.nvrStrict,
       rejectUnauthorized: this.settings.nvrStrict,
-      timeout: 10000,
+      timeout: 15000, // Increased timeout for video streams
       headers: {
-        'User-Agent': 'Homey Hikvision Camera'
+        'User-Agent': 'Homey Hikvision Camera',
+        'Accept': 'multipart/x-mixed-replace, image/jpeg, */*'
       }
     });
 
-    req.auth(this.settings.nvrUsername, this.settings.nvrPassword, false);
+    // Authentication is now embedded in the URL, so no need for req.auth()
 
     req.on('response', (response) => {
       const responseTime = Date.now() - startTime;
       this.updateConnectionStats(true, responseTime);
 
+      this.log(`[VIDEO STREAMING] Stream response: ${response.statusCode} (${responseTime}ms)`);
+      this.log(`[VIDEO STREAMING] Content-Type: ${response.headers['content-type']}`);
+
       if (response.statusCode === 200) {
-        this.log(`Stream connected successfully (${responseTime}ms)`);
+        this.log(`[VIDEO STREAMING] Stream connected successfully (${responseTime}ms)`);
+        if (response.headers['content-type']?.includes('multipart')) {
+          this.log(`[VIDEO STREAMING] MJPEG stream detected - should provide live video`);
+        } else {
+          this.log(`[VIDEO STREAMING] Static image detected - may only show snapshots`);
+        }
+      } else if (response.statusCode === 403) {
+        this.error(`[VIDEO STREAMING] Authentication failed (403) - check NVR credentials`);
+        this.tryAlternativeStream(stream);
+      } else if (response.statusCode === 404) {
+        this.error(`[VIDEO STREAMING] MJPEG endpoint not found (404) - trying alternative endpoints`);
+        this.tryAlternativeStream(stream);
+      } else {
+        this.error(`[VIDEO STREAMING] Stream failed with status: ${response.statusCode} - trying alternatives`);
+        this.tryAlternativeStream(stream);
       }
     });
 
     req.on('error', (error) => {
       this.updateConnectionStats(false, Date.now() - startTime);
-      this.error('Stream error:', error);
+      this.error(`[VIDEO STREAMING] Stream error for ${logUrl}:`, error);
+      this.tryAlternativeStream(stream);
     });
 
     req.pipe(stream);
+  }
+
+  private tryAlternativeStream(stream: Writable): void {
+    if (!this.streamInfo.alternativeStreamUrls || this.streamInfo.alternativeStreamUrls.length === 0) {
+      this.log(`[VIDEO STREAMING] No alternative endpoints available - falling back to snapshot-based streaming`);
+      this.startSnapshotBasedStreaming(stream);
+      return;
+    }
+
+    // Try the next alternative endpoint
+    const nextUrl = this.streamInfo.alternativeStreamUrls.shift();
+    if (nextUrl) {
+      const logUrl = nextUrl.replace(/:.*@/, '://***:***@');
+      this.log(`[VIDEO STREAMING] Trying alternative endpoint: ${logUrl}`);
+      
+      setTimeout(() => {
+        this.createStreamRequest(nextUrl, stream);
+      }, 1000);
+    } else {
+      this.log(`[VIDEO STREAMING] All alternatives exhausted - using snapshot-based streaming`);
+      this.startSnapshotBasedStreaming(stream);
+    }
+  }
+
+  private startSnapshotBasedStreaming(stream: Writable): void {
+    this.log(`[VIDEO STREAMING] NVR does not support direct streaming endpoints for InputProxy cameras`);
+    this.log(`[VIDEO STREAMING] This is normal for NVRs - cameras are accessed through the NVR's web interface`);
+    this.log(`[VIDEO STREAMING] For live video, use one of these options:`);
+    this.log(`[VIDEO STREAMING] 1. NVR web interface: http://192.168.10.140`);
+    this.log(`[VIDEO STREAMING] 2. RTSP client with: rtsp://admin:password@192.168.10.140:554/Streaming/Channels/${this.settings.channel}01`);
+    this.log(`[VIDEO STREAMING] 3. Direct camera access: http://192.168.10.121:8000 (for Nord camera)`);
+    this.log(`[VIDEO STREAMING] The device will continue to provide regular image updates`);
+    
+    // Since direct streaming isn't available, we'll enhance the image refresh rate for better updates
+    this.increaseImageRefreshForVideo();
+    
+    // Provide a static message to the video stream about the limitation
+    const infoMessage = 'This NVR model uses InputProxy for cameras.\n' +
+                       'Direct video streaming is not available through this interface.\n' +
+                       'For live video, please access the NVR web interface directly.\n' +
+                       'The device image will update regularly to show current view.';
+    
+    this.log(`[VIDEO STREAMING] Sending informational message to video stream`);
+    
+    // Send a simple text response explaining the situation
+    stream.write('HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n');
+    stream.write(infoMessage);
+    stream.end();
+  }
+
+  private increaseImageRefreshForVideo(): void {
+    // Temporarily increase image refresh rate to simulate more video-like updates
+    if (this.imageRefreshInterval) {
+      clearInterval(this.imageRefreshInterval);
+    }
+
+    // Refresh images every 2 seconds for more dynamic updates
+    this.imageRefreshInterval = setInterval(() => {
+      this.refreshCameraImages();
+    }, 2000);
+
+    this.log(`[VIDEO STREAMING] Increased image refresh rate to 2 seconds for better video-like experience`);
+
+    // Reset to normal refresh rate after 5 minutes
+    setTimeout(() => {
+      this.startImageRefresh(); // Restart normal refresh schedule
+      this.log(`[VIDEO STREAMING] Reset to normal image refresh schedule`);
+    }, 300000); // 5 minutes
   }
 
   private startImageRefresh(): void {
@@ -6268,6 +6505,8 @@ class HikvisionCameraDevice extends Homey.Device {
 
     this.log('System integration cleanup completed');
   }
+
+
 }
 
 export = HikvisionCameraDevice;

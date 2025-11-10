@@ -1,5 +1,5 @@
 {
-  "class": "sensor",
+  "class": "camera",
   "capabilities": [
     "camera_status",
     "motion_detected",
